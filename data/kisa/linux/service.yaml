@@ -1,0 +1,347 @@
+# KISA 기술적 취약점 분석·평가 - Linux/Unix 서버 점검 항목
+# pass/fail 판단 기준은 원본 가이드의 양호/취약 기준에서 추출
+platform: linux
+category: 서비스 관리
+source:
+  document: 주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드
+  version: 2026
+  chapter: 01. Unix 서버
+  page: 68
+items:
+- id: U-34
+  name: Finger 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 비인가자에게 사용자 정보가 조회되는 것을 방지하기 위함
+  pass: Finger 서비스가 비활성화된 경우
+  fail: Finger 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: Finger 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-35
+  name: 공유 서비스에 대한 익명 접근 제한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 공유 서비스의 익명 접근을 제한하여 중요 정보의 노출을 방지하기 위함
+  pass: 공유 서비스에 대해 익명 접근을 제한한 경우
+  fail: 공유 서비스에 대해 익명 접근을 허용한 경우
+  automation: AUTO
+  evidence: 공유 서비스 설정(익명 접근)
+  isms_p:
+  - 2.10.3
+- id: U-36
+  name: r 계열 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 인증 없이 관리자 원격 접속이 가능하여 이에 대한 보안 위협을 방지하기 위함
+  pass: 불필요한 r 계열 서비스가 비활성화된 경우
+  fail: 불필요한 r 계열 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: rlogin/rsh/rexec 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-37
+  name: crontab 설정파일 권한 설정 미흡
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 관리자 외에는 서비스를 사용할 수 없도록 설정하고 있는지 점검하기 위함
+  pass: crontab 및 at 명령어에 일반 사용자 실행 권한이 제거되어 있으며, cron 및 at 관련 파일 권한이 640 이하인 경우
+  fail: crontab 및 at 명령어에 일반 사용자 실행 권한이 부여되어 있으며, cron 및 at 관련 파일 권한이 640을 초과한 경우
+  automation: AUTO
+  evidence: crontab/at 설정 및 권한
+  isms_p:
+  - 2.10.3
+  - 2.6.2
+- id: U-38
+  name: DoS 공격에 취약한 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 시스템의 보안성을 높이기 위함
+  pass: DoS 공격에 취약한 서비스가 비활성화된 경우
+  fail: DoS 공격에 취약한 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: echo, discard 등 취약 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-39
+  name: 불필요한 NFS 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 이용하는 서비스지만 이를 이용한 침해사고 위험성이 높으므로 사용하지 않는 경우 중지하기 위함
+  pass: 불필요한 NFS 서비스 관련 데몬이 비활성화된 경우
+  fail: 불필요한 NFS 서비스 관련 데몬이 활성화된 경우
+  automation: AUTO
+  evidence: NFS 데몬 상태
+  isms_p:
+  - 2.10.3
+- id: U-40
+  name: NFS 접근 통제
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 접근 권한이 없는 비인가자의 접근을 통제하기 위함
+  pass: 접근 통제가 설정되어 있으며 NFS 설정 파일 접근 권한이 644 이하인 경우
+  fail: 접근 통제가 설정되어 있지 않고 NFS 설정 파일 접근 권한이 644를 초과하는 경우
+  automation: AUTO
+  evidence: /etc/exports (NFS 접근통제)
+  isms_p:
+  - 2.10.3
+  - 2.6.1
+- id: U-41
+  name: 불필요한 automountd 제거
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: automountd 서비스 취약점을 이용한 root 권한 획득 위협을 차단하기 위함
+  pass: automountd 서비스가 비활성화된 경우
+  fail: automountd 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: automountd 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-42
+  name: 불필요한 RPC 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 보안성을 높이기 위함
+  pass: 불필요한 RPC 서비스가 비활성화된 경우
+  fail: 불필요한 RPC 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: RPC 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-43
+  name: NIS, NIS+ 점검
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: NIS/NIS+ 서비스의 취약점을 통한 정보 노출을 방지하기 위함
+  pass: NIS 서비스가 비활성화되어 있거나, 불가피하게 사용 시 NIS+ 서비스를 사용하는 경우
+  fail: NIS 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: NIS/NIS+ 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-44
+  name: tftp, talk 서비스 비활성화
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 안전하지 않거나 불필요한 서비스를 제거함으로써 시스템 보안성 및 리소스의 효율적 운용하기 위함
+  pass: tftp, talk, ntalk 서비스가 비활성화된 경우
+  fail: tftp, talk, ntalk 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: tftp, talk, ntalk 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-45
+  name: 메일 서비스 버전 점검
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 취약한 메일 서비스 버전으로 인한 보안 위협을 방지하고 안전하게 운영하기 위함
+  pass: 메일 서비스 버전이 최신 버전인 경우
+  fail: 메일 서비스 버전이 최신 버전이 아닌 경우
+  automation: SEMI
+  evidence: 메일 서비스 버전
+  isms_p:
+  - 2.10.3
+- id: U-46
+  name: 일반 사용자의 메일 서비스 실행 방지
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 비인가자에 의한 SMTP 서비스 오류 방지하기 위함
+  pass: 일반 사용자의 메일 서비스 실행 방지가 설정된 경우
+  fail: 일반 사용자의 메일 서비스 실행 방지가 설정되어 있지 않은 경우
+  automation: AUTO
+  evidence: /etc/mail/* (일반 사용자 실행 방지)
+  isms_p:
+  - 2.10.3
+- id: U-47
+  name: 스팸 메일 릴레이 제한
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 스팸 메일 서버로의 악용 방지 및 서버 과부하를 방지하기 위함
+  pass: 릴레이 제한이 설정된 경우
+  fail: 릴레이 제한이 설정되어 있지 않은 경우
+  automation: AUTO
+  evidence: SMTP 릴레이 설정
+  isms_p:
+  - 2.10.3
+- id: U-48
+  name: expn, vrfy 명령어 제한
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: SMTP 서비스의 expn, vrfy 명령을 통한 정보 유출을 방지하기 위함
+  pass: noexpn, novrfy 옵션이 설정된 경우
+  fail: noexpn, novrfy 옵션이 설정되어 있지 않은 경우
+  automation: AUTO
+  evidence: expn/vrfy 옵션 설정
+  isms_p:
+  - 2.10.3
+- id: U-49
+  name: DNS 보안 버전 패치
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 취약점이 발표되지 않은 BIND 버전을 사용하여 시스템 보안성을 높이기 위함
+  pass: 주기적으로 패치를 관리하는 경우
+  fail: 주기적으로 패치를 관리하고 있지 않은 경우
+  automation: SEMI
+  evidence: DNS(BIND) 버전
+  isms_p:
+  - 2.10.3
+- id: U-50
+  name: DNS ZoneTransfer 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: DNS Zone Transfer 설정을 통해 비인가자에 대한 무단 접근을 방지하기 위함
+  pass: Zone Transfer를 허가된 사용자에게만 허용한 경우
+  fail: Zone Transfer를 모든 사용자에게 허용한 경우
+  automation: AUTO
+  evidence: Zone Transfer 설정
+  isms_p:
+  - 2.10.3
+- id: U-51
+  name: DNS 서비스의 취약한 동적 업데이트 설정 금지
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: DNS 동적 업데이트를 통해 신뢰할 수 없는 원본으로부터의 업데이트 위험을 차단하기 위함
+  pass: DNS 서비스의 동적 업데이트 기능이 비활성화되었거나, 활성화 시 적절한 접근통제를 수행하고 있는 경우
+  fail: DNS 서비스의 동적 업데이트 기능이 활성화 중이며 적절한 접근통제를 수행하고 있지 않은 경우
+  automation: AUTO
+  evidence: DNS 동적 업데이트 설정
+  isms_p:
+  - 2.10.3
+- id: U-52
+  name: Telnet 서비스 비활성화
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 취약한 Telnet 프로토콜을 비활성화함으로써 계정 및 중요 정보 유출 방지하기 위함
+  pass: 원격 접속 시 Telnet 프로토콜을 비활성화하고 있는 경우
+  fail: 원격 접속 시 Telnet 프로토콜을 사용하는 경우
+  automation: AUTO
+  evidence: Telnet 서비스 상태
+  isms_p:
+  - 2.10.3
+  - 2.7.1
+- id: U-53
+  name: FTP 서비스 정보 노출 제한
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: FTP 서비스 접속 배너를 통한 불필요한 정보 노출을 방지하기 위함
+  pass: FTP 접속 배너에 노출되는 정보가 없는 경우
+  fail: FTP 접속 배너에 노출되는 정보가 있는 경우
+  automation: AUTO
+  evidence: FTP 접속 배너
+  isms_p:
+  - 2.10.3
+- id: U-54
+  name: 암호화되지 않는 FTP 서비스 비활성화
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 암호화되지 않은 FTP 서비스를 비활성화함으로써 계정 및 중요 정보 유출 방지하기 위함
+  pass: 암호화되지 않은 FTP 서비스가 비활성화된 경우
+  fail: 암호화되지 않은 FTP 서비스가 활성화된 경우
+  automation: AUTO
+  evidence: FTP 서비스 상태(암호화 여부)
+  isms_p:
+  - 2.10.3
+  - 2.7.1
+- id: U-55
+  name: FTP 계정 shell 제한
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: FTP 계정의 쉘을 통한 시스템 접근을 차단하기 위함
+  pass: FTP 계정에 /bin/false(/sbin/nologin) 쉘이 부여된 경우
+  fail: FTP 계정에 /bin/false(/sbin/nologin) 쉘이 부여되어 있지 않은 경우
+  automation: AUTO
+  evidence: /etc/passwd (FTP 계정 shell)
+  isms_p:
+  - 2.10.3
+  - 2.5.1
+- id: U-56
+  name: FTP 서비스 접근 제어 설정
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 접근 권한이 없는 비인가자의 접근을 통제하기 위함
+  pass: 특정 IP주소 또는 호스트에서만 FTP 서버에 접속할 수 있도록 접근 제어 설정을 적용한 경우
+  fail: FTP 서버에 접근 제어 설정을 적용하지 않은 경우
+  automation: AUTO
+  evidence: FTP 접근 제어 설정
+  isms_p:
+  - 2.10.3
+- id: U-57
+  name: Ftpusers 파일 설정
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: root 계정의 FTP 직접 접속을 제한하여 root 비밀번호 정보 노출을 방지하기 위함
+  pass: root 계정 접속을 차단한 경우
+  fail: root 계정 접속을 허용한 경우
+  automation: AUTO
+  evidence: /etc/ftpusers (root 차단)
+  isms_p:
+  - 2.5.5
+- id: U-58
+  name: 불필요한 SNMP 서비스 구동 점검
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 불필요한 SNMP 서비스를 비활성화하여 필요 이상의 정보가 노출되는 것을 방지하기 위함
+  pass: SNMP 서비스를 사용하지 않는 경우
+  fail: SNMP 서비스를 사용하는 경우
+  automation: AUTO
+  evidence: SNMP 서비스 상태
+  isms_p:
+  - 2.10.3
+- id: U-59
+  name: 안전한 SNMP 버전 사용
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 안전한 SNMP 버전 사용으로 전송되는 데이터를 보호하기 위함
+  pass: SNMP 서비스를 v3 이상으로 사용하는 경우
+  fail: SNMP 서비스를 v2 이하로 사용하는 경우
+  automation: AUTO
+  evidence: SNMP 버전 설정
+  isms_p:
+  - 2.10.3
+  - 2.7.1
+- id: U-60
+  name: SNMP Community String 복잡성 설정
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: SNMP Community String 노출을 통한 정보 탈취에 대비하기 위함
+  pass: SNMP Community String이 기본값(public/private)이 아니고 영문·숫자 10자리 이상 또는 영문·숫자·특수문자
+    8자리 이상 (v3는 인증+복잡도 충족 시 양호)
+  fail: 기본값 사용, 영문·숫자 10자리 미만, 영문·숫자·특수문자 8자리 미만 중 하나라도 해당
+  automation: AUTO
+  evidence: SNMP Community String
+  isms_p:
+  - 2.10.3
+- id: U-61
+  name: SNMP Access Control 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: SNMP 접근 제어 설정을 통해 비인가자의 접근을 차단하기 위함
+  pass: SNMP 서비스에 접근 제어 설정이 되어 있는 경우
+  fail: SNMP 서비스에 접근 제어 설정이 되어 있지 않은 경우
+  automation: AUTO
+  evidence: SNMP 접근 제어 설정
+  isms_p:
+  - 2.10.3
+- id: U-62
+  name: 로그인 시 경고 메시지 설정
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 로그온 시 경고 메시지를 제공하여 비인가 접근 시도자에게 경각심을 주기 위함
+  pass: 서버 및 Telnet, FTP, SMTP, DNS 서비스에 로그온 시 경고 메시지가 설정된 경우
+  fail: 서버 및 Telnet, FTP, SMTP, DNS 서비스에 로그온 시 경고 메시지가 설정되어 있지 않은 경우
+  automation: AUTO
+  evidence: /etc/motd, /etc/issue (경고 메시지)
+  isms_p:
+  - 2.10.3
+- id: U-63
+  name: sudo 명령어 접근 관리
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: sudo 명령어 무분별한 사용으로 인한 권한 남용을 방지하기 위함
+  pass: /etc/sudoers 파일 소유자가 root이고, 파일 권한이 640인 경우
+  fail: /etc/sudoers 파일 소유자가 root가 아니거나, 파일 권한이 640을 초과하는 경우
+  automation: AUTO
+  evidence: /etc/sudoers (소유자·권한 640)
+  isms_p:
+  - 2.5.5

@@ -1,0 +1,235 @@
+# KISA 기술적 취약점 분석·평가 - Linux/Unix 서버 점검 항목
+# pass/fail 판단 기준은 원본 가이드의 양호/취약 기준에서 추출
+platform: linux
+category: 파일 및 디렉토리 관리
+source:
+  document: 주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드
+  version: 2026
+  chapter: 01. Unix 서버
+  page: 39
+items:
+- id: U-14
+  name: root 홈, 패스 디렉터리 권한 및 패스 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 비인가자가 불법적으로 생성한 디렉터리 및 명령어를 우선으로 실행되지 않도록 설정하기 위함
+  pass: PATH 환경변수에 “.” 이 맨 앞이나 중간에 포함되지 않은 경우
+  fail: PATH 환경변수에 “.” 이 맨 앞이나 중간에 포함된 경우
+  automation: AUTO
+  evidence: root .profile 등 PATH 변수
+  isms_p:
+  - 2.6.2
+- id: U-15
+  name: 파일 및 디렉터리 소유자 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 소유자가 존재하지 않는 파일·디렉터리를 이용한 비인가자 권한 상승을 차단하기 위함
+  pass: 소유자가 존재하지 않는 파일 및 디렉터리가 존재하지 않는 경우
+  fail: 소유자가 존재하지 않는 파일 및 디렉터리가 존재하는 경우
+  automation: AUTO
+  evidence: 소유자 없는 파일 검색(find -nouser)
+  isms_p:
+  - 2.6.2
+- id: U-16
+  name: /etc/passwd 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/passwd 파일을 관리자만 제어할 수 있게 하여 비인가자들의 임의적인 파일 변조를 방지하기 위함
+  pass: /etc/passwd 파일의 소유자가 root이고, 권한이 644 이하인 경우
+  fail: /etc/passwd 파일의 소유자가 root가 아니거나, 권한이 644 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/passwd (소유자·권한 644)
+  isms_p:
+  - 2.6.2
+- id: U-17
+  name: 시스템 시작 스크립트 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 시스템 시작 스크립트의 비인가자 변조를 방지하기 위함
+  pass: 시스템 시작 스크립트 파일의 소유자가 root이고, 일반 사용자의 쓰기 권한이 제거된 경우
+  fail: 시스템 시작 스크립트 파일의 소유자가 root가 아니거나, 일반 사용자의 쓰기 권한이 부여된 경우
+  automation: AUTO
+  evidence: /etc/init.d, /etc/rc* (시작 스크립트 권한)
+  isms_p:
+  - 2.6.2
+- id: U-18
+  name: /etc/shadow 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/shadow 파일을 관리자만 제어할 수 있게 하여 비인가자들의 임의적인 파일 변조를 방지하기 위함
+  pass: /etc/shadow 파일의 소유자가 root이고, 권한이 400 이하인 경우
+  fail: /etc/shadow 파일의 소유자가 root가 아니거나, 권한이 400 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/shadow (소유자·권한 400)
+  isms_p:
+  - 2.6.2
+- id: U-19
+  name: /etc/hosts 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/hosts 파일을 관리자만 제어할 수 있게 하여 비인가자들의 임의적인 파일 변조를 방지하기 위함
+  pass: /etc/hosts 파일의 소유자가 root이고, 권한이 644 이하인 경우
+  fail: /etc/hosts 파일의 소유자가 root가 아니거나, 권한이 644 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/hosts (권한 644)
+  isms_p:
+  - 2.6.2
+- id: U-20
+  name: /etc/(x)inetd.conf 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/(x)inetd.conf 파일을 관리자만 제어하여 비인가자들의 임의적인 파일 변조를 방지하기 위함
+  pass: /etc/(x)inetd.conf 파일의 소유자가 root이고, 권한이 600 이하인 경우
+  fail: /etc/(x)inetd.conf 파일의 소유자가 root가 아니거나, 권한이 600 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/xinetd.conf, /etc/inetd.conf (권한 600)
+  isms_p:
+  - 2.6.2
+- id: U-21
+  name: /etc/(r)syslog.conf 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/(r)syslog.conf 파일의 비인가자 변조를 방지하기 위함
+  pass: /etc/(r)syslog.conf 파일의 소유자가 root(또는 bin, sys)이고, 권한이 640 이하인 경우
+  fail: /etc/(r)syslog.conf 파일의 소유자가 root(또는 bin, sys)가 아니거나, 권한이 640 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/rsyslog.conf, /etc/syslog.conf (권한 640)
+  isms_p:
+  - 2.6.2
+  - 2.9.4
+- id: U-22
+  name: /etc/services 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/services 파일의 비인가자 변조를 방지하기 위함
+  pass: /etc/services 파일의 소유자가 root(또는 bin, sys)이고, 권한이 644 이하인 경우
+  fail: /etc/services 파일의 소유자가 root(또는 bin, sys)가 아니거나, 권한이 644 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/services (권한 644)
+  isms_p:
+  - 2.6.2
+- id: U-23
+  name: SUID, SGID, Sticky bit 설정 파일 점검
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 불필요한 SUID, SGID, Sticky bit 설정 제거로 악의적인 사용자의 권한 상승을 방지하기 위함
+  pass: 주요 실행 파일의 권한에 SUID와 SGID에 대한 설정이 부여되어 있지 않은 경우
+  fail: 주요 실행 파일의 권한에 SUID와 SGID에 대한 설정이 부여된 경우
+  automation: SEMI
+  evidence: 주요 실행 파일 SUID/SGID/Sticky bit
+  isms_p:
+  - 2.6.2
+- id: U-24
+  name: 사용자, 시스템 환경변수 파일 소유자 및 권한 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 홈 디렉터리 환경변수 파일의 비인가자 조작으로 인한 보안 위험을 방지하기 위함
+  pass: 홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되어 있고, root 계정과 소유자만 쓰기 권한이 부여된 경우
+  fail: 홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되지 않거나, root 계정과 소유자 외에 쓰기 권한이 부여된 경우
+  automation: AUTO
+  evidence: 환경변수 파일(.profile, .bashrc 등)
+  isms_p:
+  - 2.6.2
+- id: U-25
+  name: world writable 파일 점검
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: world writable 파일을 이용한 시스템 접근 및 악의적인 코드 실행을 방지하기 위함
+  pass: world writable 파일이 존재하지 않거나, 존재 시 설정 이유를 인지하고 있는 경우
+  fail: world writable 파일이 존재하나 설정 이유를 인지하지 못하고 있는 경우
+  automation: SEMI
+  evidence: world writable 파일 목록
+  isms_p:
+  - 2.6.2
+- id: U-26
+  name: /dev에 존재하지 않는 device 파일 점검
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 존재하지 않는 device 파일을 제거하여 불법적인 접근 위협을 방지하기 위함
+  pass: /dev 디렉터리에 대한 파일 점검 후 존재하지 않는 device 파일을 제거한 경우
+  fail: /dev 디렉터리에 대한 파일 미점검 또는 존재하지 않는 device 파일을 방치한 경우
+  automation: SEMI
+  evidence: /dev 디렉토리 device 파일
+  isms_p:
+  - 2.6.2
+- id: U-27
+  name: $HOME/.rhosts, hosts.equiv 사용 금지
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: r-command를 통한 별도의 인증 없는 관리자 권한 원격 접속을 차단하기 위함
+  pass: rlogin, rsh, rexec 서비스를 사용하지 않거나, 사용 시 hosts.equiv·.rhosts 소유자/권한(600 이하)/'+'
+    설정이 적절한 경우
+  fail: rlogin, rsh, rexec 서비스를 사용하며 hosts.equiv·.rhosts 소유자/권한/'+' 설정이 적절하지 않은 경우
+  automation: AUTO
+  evidence: /etc/hosts.equiv, $HOME/.rhosts
+  isms_p:
+  - 2.6.6
+  - 2.5.3
+- id: U-28
+  name: 접속 IP 및 포트 제한
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 허용한 호스트만 서비스를 사용하게 하여 서비스 취약점을 이용한 외부자 공격을 방지하기 위함
+  pass: 접속을 허용할 특정 호스트에 대한 IP주소 및 포트 제한을 설정한 경우
+  fail: 접속을 허용할 특정 호스트에 대한 IP주소 및 포트 제한을 설정하지 않은 경우
+  automation: AUTO
+  evidence: /etc/hosts.allow, /etc/hosts.deny
+  isms_p:
+  - 2.6.1
+  - 2.6.2
+- id: U-29
+  name: hosts.lpd 파일 소유자 및 권한 설정
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: /etc/hosts.lpd 파일의 비인가자 변조를 방지하기 위함
+  pass: /etc/hosts.lpd 파일이 존재하지 않거나, 불가피하게 사용 시 소유자가 root이고, 권한이 600 이하인 경우
+  fail: /etc/hosts.lpd 파일이 존재하며, 소유자가 root가 아니거나, 권한이 600 이하가 아닌 경우
+  automation: AUTO
+  evidence: /etc/hosts.lpd
+  isms_p:
+  - 2.6.2
+- id: U-30
+  name: UMASK 설정 관리
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 잘못 설정된 UMASK 값으로 인해 신규 파일에 대한 권한이 과도하게 부여되는 것을 방지하기 위함
+  pass: UMASK 값이 022 이상으로 설정된 경우
+  fail: UMASK 값이 022 미만으로 설정된 경우
+  automation: AUTO
+  evidence: /etc/profile (UMASK)
+  isms_p:
+  - 2.6.2
+- id: U-31
+  name: 홈디렉토리 소유자 및 권한 설정
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 사용자 홈 디렉토리 내 설정 파일이 비인가자에 의한 변조를 방지하기 위함
+  pass: 홈 디렉토리 소유자가 해당 계정이고, 타 사용자 쓰기 권한이 제거된 경우
+  fail: 홈 디렉토리 소유자가 해당 계정이 아니거나, 타 사용자 쓰기 권한이 부여된 경우
+  automation: AUTO
+  evidence: 홈 디렉토리 소유자·권한
+  isms_p:
+  - 2.6.2
+- id: U-32
+  name: 홈 디렉토리로 지정한 디렉토리의 존재 관리
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 홈 디렉터리가 존재하지 않는 계정으로 인한 보안 위협을 방지하기 위함
+  pass: 홈 디렉토리가 존재하지 않는 계정이 발견되지 않는 경우
+  fail: 홈 디렉토리가 존재하지 않는 계정이 발견된 경우
+  automation: AUTO
+  evidence: /etc/passwd 홈 디렉토리 존재 여부
+  isms_p:
+  - 2.5.1
+  - 2.6.2
+- id: U-33
+  name: 숨겨진 파일 및 디렉토리 검색 및 제거
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 불필요하거나 의심스러운 숨김 파일을 제거하여 보안 위협을 방지하기 위함
+  pass: 불필요하거나 의심스러운 숨겨진 파일 및 디렉토리를 제거한 경우
+  fail: 불필요하거나 의심스러운 숨겨진 파일 및 디렉토리를 제거하지 않은 경우
+  automation: SEMI
+  evidence: 숨김 파일/디렉토리 목록
+  isms_p:
+  - 2.6.2

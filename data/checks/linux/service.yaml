@@ -1,0 +1,544 @@
+# Check Specification — Linux Technical Checks
+# (Check↔KISA 관계는 data/mappings/kisa-to-check.yaml 에서 관리)
+checks:
+- id: CK-lnx-U34-001
+  type: service_status
+  description: Finger 서비스 비활성화 여부 확인
+  platforms:
+  - linux
+  automation: &id001
+    observation: auto
+    assessment: auto
+  targets:
+  - kind: service
+    name: finger
+    port: 79
+    mechanisms:
+    - inetd
+    - xinetd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: finger
+- id: CK-lnx-U35-001
+  type: config_value
+  description: 공유 서비스 익명 접근 제한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/samba/smb.conf
+  expect:
+    op: contains
+    value: guest ok = no
+  evidence:
+  - kind: file
+    path: /etc/samba/smb.conf
+- id: CK-lnx-U36-001
+  type: service_status
+  description: r 계열 서비스 비활성화 여부 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: rlogin
+    port: 513
+    mechanisms:
+    - inetd
+    - xinetd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: rlogin
+- id: CK-lnx-U37-001
+  type: file_mode
+  description: cron/at 설정 파일 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/cron.allow
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: ''
+  evidence:
+  - kind: file
+    path: /etc/cron.allow
+    field: mode
+- id: CK-lnx-U38-001
+  type: service_status
+  description: DoS 취약 서비스 비활성화 여부 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: echo
+    port: 7
+    mechanisms:
+    - inetd
+    - xinetd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: echo
+- id: CK-lnx-U39-001
+  type: service_status
+  description: 불필요한 NFS 서비스 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: nfs
+    port: 2049
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: nfs
+- id: CK-lnx-U40-001
+  type: config_value
+  description: NFS 접근 통제 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/exports
+  expect:
+    op: contains
+    value: ro
+  evidence:
+  - kind: file
+    path: /etc/exports
+- id: CK-lnx-U41-001
+  type: service_status
+  description: automountd 서비스 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: autofs
+    port: 0
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: autofs
+- id: CK-lnx-U42-001
+  type: service_status
+  description: 불필요한 RPC 서비스 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: rpcbind
+    port: 111
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: rpcbind
+- id: CK-lnx-U43-001
+  type: service_status
+  description: NIS 서비스 비활성화 여부 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: ypserv
+    port: 0
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: ypserv
+- id: CK-lnx-U44-001
+  type: service_status
+  description: tftp/talk 서비스 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: tftp
+    port: 69
+    mechanisms:
+    - inetd
+    - xinetd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: tftp
+- id: CK-lnx-U45-001
+  type: package_version
+  description: 메일 서비스 취약 버전 여부 확인
+  platforms:
+  - linux
+  automation: &id002
+    observation: auto
+    assessment: external_data
+  targets:
+  - kind: package
+    name: sendmail
+  expect:
+    op: ge
+    value_ref:
+      source: vendor_advisory
+      item:
+        package: sendmail
+        platform: linux
+  evidence:
+  - kind: package
+    field: version
+    name: sendmail
+- id: CK-lnx-U46-001
+  type: config_value
+  description: 일반 사용자 메일 실행 방지 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/mail/sendmail.cf
+  expect:
+    op: contains
+    value: PrivacyOptions
+  evidence:
+  - kind: file
+    path: /etc/mail/sendmail.cf
+- id: CK-lnx-U47-001
+  type: config_value
+  description: 스팸 메일 릴레이 제한 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/mail/sendmail.cf
+  expect:
+    op: not_contains
+    value: PromiscuousRelay
+  evidence:
+  - kind: file
+    path: /etc/mail/sendmail.cf
+- id: CK-lnx-U48-001
+  type: config_value
+  description: expn/vrfy 명령어 제한 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/mail/sendmail.cf
+  expect:
+    op: contains
+    value: noexpn
+  evidence:
+  - kind: file
+    path: /etc/mail/sendmail.cf
+- id: CK-lnx-U49-001
+  type: package_version
+  description: DNS(BIND) 취약 버전 여부 확인
+  platforms:
+  - linux
+  automation: *id002
+  targets:
+  - kind: package
+    name: bind
+  expect:
+    op: ge
+    value_ref:
+      source: vendor_advisory
+      item:
+        package: bind
+        platform: linux
+  evidence:
+  - kind: package
+    field: version
+    name: bind
+- id: CK-lnx-U50-001
+  type: config_value
+  description: DNS Zone Transfer 제한 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/named.conf
+  expect:
+    op: contains
+    value: allow-transfer
+  evidence:
+  - kind: file
+    path: /etc/named.conf
+- id: CK-lnx-U51-001
+  type: config_value
+  description: DNS 동적 업데이트 금지 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/named.conf
+  expect:
+    op: not_contains
+    value: allow-update
+  evidence:
+  - kind: file
+    path: /etc/named.conf
+- id: CK-lnx-U52-001
+  type: service_status
+  description: Telnet 서비스 비활성화 여부 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: telnet
+    port: 23
+    mechanisms:
+    - systemd
+    - xinetd
+    - inetd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: telnet
+- id: CK-lnx-U53-001
+  type: config_value
+  description: FTP 서비스 정보 노출 제한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/vsftpd/vsftpd.conf
+  expect:
+    op: contains
+    value: ftpd_banner
+  evidence:
+  - kind: file
+    path: /etc/vsftpd/vsftpd.conf
+- id: CK-lnx-U54-001
+  type: service_status
+  description: 암호화되지 않은 FTP 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: vsftpd
+    port: 21
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: vsftpd
+- id: CK-lnx-U55-001
+  type: account_shell
+  description: FTP 계정 로그인 쉘 제한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: account
+    source: /etc/passwd
+    field: shell
+  expect:
+    op: in
+    value:
+    - /bin/false
+    - /sbin/nologin
+  evidence:
+  - kind: account
+    path: /etc/passwd
+    field: shell
+- id: CK-lnx-U56-001
+  type: config_value
+  description: FTP 서비스 접근 제어 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/ftpusers
+  expect:
+    op: exists
+  evidence:
+  - kind: file
+    path: /etc/ftpusers
+- id: CK-lnx-U57-001
+  type: config_value
+  description: Ftpusers 파일의 root 차단 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/ftpusers
+  expect:
+    op: contains
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/ftpusers
+- id: CK-lnx-U58-001
+  type: service_status
+  description: 불필요한 SNMP 서비스 비활성화 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: service
+    name: snmpd
+    port: 161
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: disabled
+  evidence:
+  - kind: service
+    field: status
+    name: snmpd
+- id: CK-lnx-U59-001
+  type: config_value
+  description: 안전한 SNMP 버전 사용 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/snmp/snmpd.conf
+  expect:
+    op: contains
+    value: v3
+  evidence:
+  - kind: file
+    path: /etc/snmp/snmpd.conf
+- id: CK-lnx-U60-001
+  type: config_value
+  description: SNMP Community String 복잡성 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/snmp/snmpd.conf
+  expect:
+    op: not_contains
+    value: public
+  evidence:
+  - kind: file
+    path: /etc/snmp/snmpd.conf
+- id: CK-lnx-U61-001
+  type: config_value
+  description: SNMP Access Control 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/snmp/snmpd.conf
+  expect:
+    op: contains
+    value: com2sec
+  evidence:
+  - kind: file
+    path: /etc/snmp/snmpd.conf
+- id: CK-lnx-U62-001
+  type: file_existence
+  description: 로그인 경고 메시지 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/motd
+  expect:
+    op: exists
+  evidence:
+  - kind: file
+    path: /etc/motd
+- id: CK-lnx-U63-001
+  type: file_owner
+  description: /etc/sudoers 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/sudoers
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/sudoers
+    field: owner
+- id: CK-lnx-U63-002
+  type: file_mode
+  description: /etc/sudoers 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/sudoers
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: ''
+  evidence:
+  - kind: file
+    path: /etc/sudoers
+    field: mode

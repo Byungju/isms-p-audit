@@ -1,0 +1,57 @@
+# Check Specification — Linux Technical Checks
+# (Check↔KISA 관계는 data/mappings/kisa-to-check.yaml 에서 관리)
+checks:
+- id: CK-lnx-U65-001
+  type: service_status
+  description: NTP 시각 동기화 설정 확인
+  platforms:
+  - linux
+  automation: &id001
+    observation: auto
+    assessment: auto
+  targets:
+  - kind: service
+    name: ntpd
+    port: 123
+    mechanisms:
+    - systemd
+  expect:
+    op: eq
+    value: enabled
+  evidence:
+  - kind: service
+    field: status
+    name: ntpd
+- id: CK-lnx-U66-001
+  type: config_value
+  description: 시스템 로깅 설정 여부 확인(정책 판단)
+  platforms:
+  - linux
+  automation:
+    observation: auto
+    assessment: human
+  targets:
+  - kind: config
+    path: /etc/rsyslog.conf
+  expect:
+    op: contains
+    value: /var/log
+  evidence:
+  - kind: file
+    path: /etc/rsyslog.conf
+- id: CK-lnx-U67-001
+  type: file_scan
+  description: 로그 디렉토리 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: scan
+    root: /var/log
+    recursive: false
+    criteria: world_writable
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /var/log

@@ -1,0 +1,156 @@
+# KISA 기술적 취약점 분석·평가 - Linux/Unix 서버 점검 항목
+# pass/fail 판단 기준은 원본 가이드의 양호/취약 기준에서 추출
+platform: linux
+category: 계정 관리
+source:
+  document: 주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드
+  version: 2026
+  chapter: 01. Unix 서버
+  page: 12
+items:
+- id: U-01
+  name: root 계정 원격 접속 제한
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 원천적으로 차단하기 위함
+  pass: 원격터미널 서비스를 사용하지 않거나, 사용 시 root 직접 접속을 차단한 경우
+  fail: 원격터미널 서비스 사용 시 root 직접 접속을 허용한 경우
+  automation: AUTO
+  evidence: /etc/ssh/sshd_config (PermitRootLogin), /etc/pam.d/login, /etc/securetty
+  isms_p:
+  - 2.5.5
+  - 2.6.6
+- id: U-02
+  name: 비밀번호 관리정책 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 사용자의 비밀번호 복잡성과 주기적 변경을 통해 시스템 보안을 강화하기 위함
+  pass: 비밀번호 관리 정책이 설정된 경우
+  fail: 비밀번호 관리 정책이 설정되지 않은 경우
+  automation: AUTO
+  evidence: /etc/pam.d/*, /etc/login.defs, /etc/security/pwquality.conf
+  isms_p:
+  - 2.5.4
+- id: U-03
+  name: 계정 잠금 임계값 설정
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 차단하고 대입 공격으로 인한 비밀번호 노출 공격을 무력화하기 위함
+  pass: 계정 잠금 임계값이 10회 이하의 값으로 설정된 경우
+  fail: 계정 잠금 임계값이 설정되어 있지 않거나, 10회 이하의 값으로 설정되지 않은 경우
+  automation: AUTO
+  evidence: /etc/pam.d/system-auth 등 (pam_tally2/pam_faillock)
+  isms_p:
+  - 2.5.3
+  - 2.5.4
+- id: U-04
+  name: 비밀번호 파일 보호
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 비밀번호가 암호화(쉐도우)되어 저장되는지 점검하여 비밀번호 파일 접근 시에도 계정 비밀번호를 보호하기 위함
+  pass: 쉐도우 비밀번호를 사용하거나, 비밀번호를 암호화하여 저장하는 경우
+  fail: 쉐도우 비밀번호를 사용하지 않고, 비밀번호를 암호화하여 저장하지 않는 경우
+  automation: AUTO
+  evidence: /etc/shadow, /etc/passwd (쉐도우 적용 여부)
+  isms_p:
+  - 2.7.1
+- id: U-05
+  name: root 이외의 UID가 ‘0’ 금지
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: root와 동일한 UID(0)를 가진 계정이 존재하는지 점검하여 root 권한 남용 위협으로부터 보호하기 위함
+  pass: root 계정과 동일한 UID를 갖는 계정이 존재하지 않는 경우
+  fail: root 계정과 동일한 UID를 갖는 계정이 존재하는 경우
+  automation: AUTO
+  evidence: /etc/passwd (UID 0 계정)
+  isms_p:
+  - 2.5.5
+- id: U-06
+  name: 사용자 계정 su 기능 제한
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 사용자의 su 명령 사용을 원천적으로 차단하는지 확인하기 위함
+  pass: su 명령어를 특정 그룹에 속한 사용자만 사용하도록 제한된 경우
+  fail: su 명령어를 모든 사용자가 사용하도록 설정된 경우
+  automation: AUTO
+  evidence: /etc/pam.d/su, /etc/group (wheel 그룹)
+  isms_p:
+  - 2.5.5
+- id: U-07
+  name: 불필요한 계정 제거
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 불필요한 계정이 존재하는지 점검하여 관리되지 않은 계정에 의한 침입에 대비하는지 확인하기 위함
+  pass: 불필요한 계정이 존재하지 않는 경우
+  fail: 불필요한 계정이 존재하는 경우
+  automation: SEMI
+  evidence: /etc/passwd, /etc/shadow (계정 목록)
+  isms_p:
+  - 2.5.1
+- id: U-08
+  name: 관리자 그룹에 최소한의 계정 포함
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 관리자 그룹에 최소한의 필요 계정만 존재하는지 확인하여 불필요한 권한 남용을 점검하기 위함
+  pass: 관리자 그룹에 불필요한 계정이 등록되어 있지 않은 경우
+  fail: 관리자 그룹에 불필요한 계정이 등록된 경우
+  automation: SEMI
+  evidence: /etc/group (관리자 그룹 구성원)
+  isms_p:
+  - 2.5.5
+- id: U-09
+  name: 계정이 존재하지 않는 GID 금지
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 계정이 존재하지 않거나 불필요한 그룹으로 인해 발생할 수 있는 위험에 대비하기 위함
+  pass: 시스템 관리나 운용에 불필요한 그룹이 제거된 경우
+  fail: 시스템 관리나 운용에 불필요한 그룹이 존재하는 경우
+  automation: SEMI
+  evidence: /etc/group (불필요 그룹)
+  isms_p:
+  - 2.5.1
+- id: U-10
+  name: 동일한 UID 금지
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 예방 및 침해사고 시 명확한 감사 추적을 하기 위함
+  pass: 동일한 UID로 설정된 사용자 계정이 존재하지 않는 경우
+  fail: 동일한 UID로 설정된 사용자 계정이 존재하는 경우
+  automation: AUTO
+  evidence: /etc/passwd (중복 UID)
+  isms_p:
+  - 2.5.1
+- id: U-11
+  name: 사용자 shell 점검
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 로그인이 불필요한 계정이 쉘을 통해 시스템에 접속하는 것을 차단하기 위함
+  pass: 로그인이 필요하지 않은 계정에 /bin/false(/sbin/nologin) 쉘이 부여된 경우
+  fail: 로그인이 필요하지 않은 계정에 /bin/false(/sbin/nologin) 쉘이 부여되지 않은 경우
+  automation: AUTO
+  evidence: /etc/passwd (계정별 shell)
+  isms_p:
+  - 2.5.1
+- id: U-12
+  name: 세션 종료 시간 설정
+  severity: 하
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 사용자의 고의 또는 실수로 시스템에 계정이 접속된 상태로 방치됨을 차단하기 위함
+  pass: Session Timeout이 600초(10분) 이하로 설정된 경우
+  fail: Session Timeout이 600초(10분) 이하로 설정되지 않은 경우
+  automation: AUTO
+  evidence: /etc/profile, /etc/csh.login (TMOUT)
+  isms_p:
+  - 2.5.3
+  - 2.6.2
+- id: U-13
+  name: 안전한 비밀번호 암호화 알고리즘 사용
+  severity: 중
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 안전한 비밀번호 암호화 알고리즘을 사용하여 사용자 계정정보를 보호하기 위함
+  pass: SHA-2 이상의 안전한 비밀번호 암호화 알고리즘을 사용하는 경우
+  fail: 취약한 비밀번호 암호화 알고리즘을 사용하는 경우
+  automation: AUTO
+  evidence: /etc/pam.d/*, /etc/login.defs, /etc/shadow (해시 알고리즘)
+  isms_p:
+  - 2.7.1

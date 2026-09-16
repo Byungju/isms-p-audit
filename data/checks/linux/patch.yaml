@@ -1,0 +1,46 @@
+# Check Specification — Linux Technical Checks
+# (Check↔KISA 관계는 data/mappings/kisa-to-check.yaml 에서 관리)
+checks:
+- id: CK-lnx-U64-001
+  type: document
+  description: 패치 적용 정책 문서 존재 여부 확인
+  platforms:
+  - linux
+  automation:
+    observation: manual
+    assessment: human
+  targets:
+  - kind: document
+    name: 패치 적용 정책/절차
+  expect:
+    op: exists
+  evidence:
+  - kind: document
+    name: 패치 적용 정책/절차
+- id: CK-lnx-U64-002
+  type: package_version
+  description: 커널 보안 패치 최신 버전 여부 확인
+  platforms:
+  - linux
+  automation:
+    observation: auto
+    assessment: external_data
+  targets:
+  - kind: package
+    name: kernel
+  expect:
+    any:
+    - op: ge
+      value_ref:
+        source: vendor_advisory
+        item:
+          package: kernel
+          platform: linux
+    - op: eq
+      value_ref:
+        source: policy
+        key: patch.accepted_kernel_version
+  evidence:
+  - kind: package
+    field: version
+    name: kernel

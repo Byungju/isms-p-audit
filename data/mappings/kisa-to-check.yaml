@@ -1,0 +1,215 @@
+# KISA ↔ Technical Check 매핑 (SSOT)
+version: 1
+
+mappings:
+  - kisa_ref: U-01
+    check_refs:
+      - CK-lnx-U01-001
+      - CK-lnx-U01-002
+      - CK-lnx-U01-003
+  - kisa_ref: U-02
+    check_refs:
+      - CK-lnx-U02-001
+  - kisa_ref: U-03
+    check_refs:
+      - CK-lnx-U03-001
+  - kisa_ref: U-04
+    check_refs:
+      - CK-lnx-U04-001
+  - kisa_ref: U-05
+    check_refs:
+      - CK-lnx-U05-001
+  - kisa_ref: U-06
+    check_refs:
+      - CK-lnx-U06-001
+  - kisa_ref: U-07
+    check_refs:
+      - CK-lnx-U07-001
+  - kisa_ref: U-08
+    check_refs:
+      - CK-lnx-U08-001
+  - kisa_ref: U-09
+    check_refs:
+      - CK-lnx-U09-001
+  - kisa_ref: U-10
+    check_refs:
+      - CK-lnx-U10-001
+  - kisa_ref: U-11
+    check_refs:
+      - CK-lnx-U11-001
+  - kisa_ref: U-12
+    check_refs:
+      - CK-lnx-U12-001
+  - kisa_ref: U-13
+    check_refs:
+      - CK-lnx-U13-001
+  - kisa_ref: U-14
+    check_refs:
+      - CK-lnx-U14-001
+  - kisa_ref: U-15
+    check_refs:
+      - CK-lnx-U15-001
+  - kisa_ref: U-16
+    check_refs:
+      - CK-lnx-U16-001
+      - CK-lnx-U16-002
+  - kisa_ref: U-17
+    check_refs:
+      - CK-lnx-U17-001
+  - kisa_ref: U-18
+    check_refs:
+      - CK-lnx-U18-001
+      - CK-lnx-U18-002
+  - kisa_ref: U-19
+    check_refs:
+      - CK-lnx-U19-001
+      - CK-lnx-U19-002
+  - kisa_ref: U-20
+    check_refs:
+      - CK-lnx-U20-001
+      - CK-lnx-U20-002
+  - kisa_ref: U-21
+    check_refs:
+      - CK-lnx-U21-001
+      - CK-lnx-U21-002
+  - kisa_ref: U-22
+    check_refs:
+      - CK-lnx-U22-001
+      - CK-lnx-U22-002
+  - kisa_ref: U-23
+    check_refs:
+      - CK-lnx-U23-001
+  - kisa_ref: U-24
+    check_refs:
+      - CK-lnx-U24-001
+  - kisa_ref: U-25
+    check_refs:
+      - CK-lnx-U25-001
+  - kisa_ref: U-26
+    check_refs:
+      - CK-lnx-U26-001
+  - kisa_ref: U-27
+    check_refs:
+      - CK-lnx-U27-001
+  - kisa_ref: U-28
+    check_refs:
+      - CK-lnx-U28-001
+  - kisa_ref: U-29
+    check_refs:
+      - CK-lnx-U29-001
+  - kisa_ref: U-30
+    check_refs:
+      - CK-lnx-U30-001
+  - kisa_ref: U-31
+    check_refs:
+      - CK-lnx-U31-001
+  - kisa_ref: U-32
+    check_refs:
+      - CK-lnx-U32-001
+  - kisa_ref: U-33
+    check_refs:
+      - CK-lnx-U33-001
+  - kisa_ref: U-34
+    check_refs:
+      - CK-lnx-U34-001
+  - kisa_ref: U-35
+    check_refs:
+      - CK-lnx-U35-001
+  - kisa_ref: U-36
+    check_refs:
+      - CK-lnx-U36-001
+  - kisa_ref: U-37
+    check_refs:
+      - CK-lnx-U37-001
+  - kisa_ref: U-38
+    check_refs:
+      - CK-lnx-U38-001
+  - kisa_ref: U-39
+    check_refs:
+      - CK-lnx-U39-001
+  - kisa_ref: U-40
+    check_refs:
+      - CK-lnx-U40-001
+  - kisa_ref: U-41
+    check_refs:
+      - CK-lnx-U41-001
+  - kisa_ref: U-42
+    check_refs:
+      - CK-lnx-U42-001
+  - kisa_ref: U-43
+    check_refs:
+      - CK-lnx-U43-001
+  - kisa_ref: U-44
+    check_refs:
+      - CK-lnx-U44-001
+  - kisa_ref: U-45
+    check_refs:
+      - CK-lnx-U45-001
+  - kisa_ref: U-46
+    check_refs:
+      - CK-lnx-U46-001
+  - kisa_ref: U-47
+    check_refs:
+      - CK-lnx-U47-001
+  - kisa_ref: U-48
+    check_refs:
+      - CK-lnx-U48-001
+  - kisa_ref: U-49
+    check_refs:
+      - CK-lnx-U49-001
+  - kisa_ref: U-50
+    check_refs:
+      - CK-lnx-U50-001
+  - kisa_ref: U-51
+    check_refs:
+      - CK-lnx-U51-001
+  - kisa_ref: U-52
+    check_refs:
+      - CK-lnx-U52-001
+  - kisa_ref: U-53
+    check_refs:
+      - CK-lnx-U53-001
+  - kisa_ref: U-54
+    check_refs:
+      - CK-lnx-U54-001
+  - kisa_ref: U-55
+    check_refs:
+      - CK-lnx-U55-001
+  - kisa_ref: U-56
+    check_refs:
+      - CK-lnx-U56-001
+  - kisa_ref: U-57
+    check_refs:
+      - CK-lnx-U57-001
+  - kisa_ref: U-58
+    check_refs:
+      - CK-lnx-U58-001
+  - kisa_ref: U-59
+    check_refs:
+      - CK-lnx-U59-001
+  - kisa_ref: U-60
+    check_refs:
+      - CK-lnx-U60-001
+  - kisa_ref: U-61
+    check_refs:
+      - CK-lnx-U61-001
+  - kisa_ref: U-62
+    check_refs:
+      - CK-lnx-U62-001
+  - kisa_ref: U-63
+    check_refs:
+      - CK-lnx-U63-001
+      - CK-lnx-U63-002
+  - kisa_ref: U-64
+    check_refs:
+      - CK-lnx-U64-001
+      - CK-lnx-U64-002
+  - kisa_ref: U-65
+    check_refs:
+      - CK-lnx-U65-001
+  - kisa_ref: U-66
+    check_refs:
+      - CK-lnx-U66-001
+  - kisa_ref: U-67
+    check_refs:
+      - CK-lnx-U67-001

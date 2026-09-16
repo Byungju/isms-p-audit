@@ -1,0 +1,21 @@
+# KISA 기술적 취약점 분석·평가 - Linux/Unix 서버 점검 항목
+# pass/fail 판단 기준은 원본 가이드의 양호/취약 기준에서 추출
+platform: linux
+category: 패치 관리
+source:
+  document: 주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드
+  version: 2026
+  chapter: 01. Unix 서버
+  page: 160
+items:
+- id: U-64
+  name: 주기적 보안 패치 및 벤더 권고사항 적용
+  severity: 상
+  target: SOLARIS, LINUX, AIX, HP-UX 등
+  purpose: 주기적인 패치 적용을 통해 시스템 안정성 및 보안성을 확보하기 위함
+  pass: 패치 적용 정책을 수립하여 주기적으로 패치 관리하며 패치 내용을 확인·적용한 경우
+  fail: 패치 적용 정책 미수립, 주기적 관리 미흡, 패치 내용 미확인·미적용인 경우
+  automation: SEMI
+  evidence: 패치 적용 현황/정책
+  isms_p:
+  - 2.10.8

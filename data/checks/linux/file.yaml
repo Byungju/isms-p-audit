@@ -1,0 +1,446 @@
+# Check Specification — Linux Technical Checks
+# (Check↔KISA 관계는 data/mappings/kisa-to-check.yaml 에서 관리)
+checks:
+- id: CK-lnx-U14-001
+  type: config_value
+  description: root PATH에 '.' 포함 여부 확인
+  platforms:
+  - linux
+  automation: &id001
+    observation: auto
+    assessment: auto
+  targets:
+  - kind: config
+    path: /root/.profile
+  expect:
+    op: not_contains
+    value: :.
+  evidence:
+  - kind: file
+    path: /root/.profile
+- id: CK-lnx-U15-001
+  type: file_scan
+  description: 소유자가 없는 파일 존재 여부 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: scan
+    root: /
+    recursive: true
+    criteria: ownerless
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /
+- id: CK-lnx-U16-001
+  type: file_owner
+  description: /etc/passwd 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/passwd
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/passwd
+    field: owner
+- id: CK-lnx-U16-002
+  type: file_mode
+  description: /etc/passwd 파일의 Unix 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/passwd
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: r
+  evidence:
+  - kind: file
+    path: /etc/passwd
+    field: mode
+- id: CK-lnx-U17-001
+  type: file_scan
+  description: 시스템 시작 스크립트 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: scan
+    root: /etc/init.d
+    recursive: false
+    criteria: world_writable
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /etc/init.d
+- id: CK-lnx-U18-001
+  type: file_owner
+  description: /etc/shadow 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/shadow
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/shadow
+    field: owner
+- id: CK-lnx-U18-002
+  type: file_mode
+  description: /etc/shadow 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/shadow
+    field: mode
+  expect:
+    mode_allowed:
+      owner: r
+      group: ''
+      other: ''
+  evidence:
+  - kind: file
+    path: /etc/shadow
+    field: mode
+- id: CK-lnx-U19-001
+  type: file_owner
+  description: /etc/hosts 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/hosts
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/hosts
+    field: owner
+- id: CK-lnx-U19-002
+  type: file_mode
+  description: /etc/hosts 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/hosts
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: r
+  evidence:
+  - kind: file
+    path: /etc/hosts
+    field: mode
+- id: CK-lnx-U20-001
+  type: file_owner
+  description: /etc/xinetd.conf 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/xinetd.conf
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/xinetd.conf
+    field: owner
+- id: CK-lnx-U20-002
+  type: file_mode
+  description: /etc/xinetd.conf 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/xinetd.conf
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: ''
+      other: ''
+  evidence:
+  - kind: file
+    path: /etc/xinetd.conf
+    field: mode
+- id: CK-lnx-U21-001
+  type: file_owner
+  description: /etc/rsyslog.conf 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/rsyslog.conf
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/rsyslog.conf
+    field: owner
+- id: CK-lnx-U21-002
+  type: file_mode
+  description: /etc/rsyslog.conf 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/rsyslog.conf
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: ''
+  evidence:
+  - kind: file
+    path: /etc/rsyslog.conf
+    field: mode
+- id: CK-lnx-U22-001
+  type: file_owner
+  description: /etc/services 파일의 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/services
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/services
+    field: owner
+- id: CK-lnx-U22-002
+  type: file_mode
+  description: /etc/services 파일의 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/services
+    field: mode
+  expect:
+    mode_allowed:
+      owner: rw
+      group: r
+      other: r
+  evidence:
+  - kind: file
+    path: /etc/services
+    field: mode
+- id: CK-lnx-U23-001
+  type: file_scan
+  description: SUID/SGID 설정 파일 존재 여부 확인(사람 판단)
+  platforms:
+  - linux
+  automation: &id002
+    observation: auto
+    assessment: human
+  targets:
+  - kind: scan
+    root: /
+    recursive: true
+    criteria: suid
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /
+- id: CK-lnx-U24-001
+  type: file_scan
+  description: 환경변수 파일 권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: scan
+    root: /home
+    recursive: true
+    criteria: world_writable
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /home
+- id: CK-lnx-U25-001
+  type: file_scan
+  description: world writable 파일 존재 여부 확인(사람 판단)
+  platforms:
+  - linux
+  automation: *id002
+  targets:
+  - kind: scan
+    root: /
+    recursive: true
+    criteria: world_writable
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /
+- id: CK-lnx-U26-001
+  type: file_scan
+  description: /dev에 존재하지 않는 device 파일 확인(사람 판단)
+  platforms:
+  - linux
+  automation: *id002
+  targets:
+  - kind: scan
+    root: /dev
+    recursive: false
+    criteria: device
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /dev
+- id: CK-lnx-U27-001
+  type: file_existence
+  description: .rhosts/hosts.equiv 사용 금지 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/hosts.equiv
+  expect:
+    not:
+      op: exists
+  evidence:
+  - kind: file
+    path: /etc/hosts.equiv
+- id: CK-lnx-U28-001
+  type: config_value
+  description: 접속 IP/포트 제한 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/hosts.deny
+  expect:
+    op: contains
+    value: ALL
+  evidence:
+  - kind: file
+    path: /etc/hosts.deny
+- id: CK-lnx-U29-001
+  type: file_owner
+  description: hosts.lpd 파일 소유자 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: file
+    path: /etc/hosts.lpd
+    field: owner
+  expect:
+    op: eq
+    value: root
+  evidence:
+  - kind: file
+    path: /etc/hosts.lpd
+    field: owner
+- id: CK-lnx-U30-001
+  type: config_value
+  description: UMASK 설정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: config
+    path: /etc/profile
+    key: umask
+  expect:
+    op: ge
+    value: '022'
+  evidence:
+  - kind: file
+    path: /etc/profile
+    field: umask
+- id: CK-lnx-U31-001
+  type: file_scan
+  description: 홈 디렉토리 소유자/권한 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: scan
+    root: /home
+    recursive: false
+    criteria: world_writable
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /home
+- id: CK-lnx-U32-001
+  type: account_shell
+  description: 홈 디렉토리가 없는 계정 확인
+  platforms:
+  - linux
+  automation: *id001
+  targets:
+  - kind: account
+    source: /etc/passwd
+    field: shell
+  expect:
+    op: empty
+  evidence:
+  - kind: account
+    path: /etc/passwd
+    field: shell
+- id: CK-lnx-U33-001
+  type: file_scan
+  description: 의심스러운 숨김 파일 확인(사람 판단)
+  platforms:
+  - linux
+  automation: *id002
+  targets:
+  - kind: scan
+    root: /
+    recursive: true
+    criteria: hidden
+  expect:
+    op: empty
+  evidence:
+  - kind: file
+    path: /

@@ -1,0 +1,121 @@
+# ISMS-P 인증기준 -> KISA Linux/Unix 점검 항목 매핑
+# 주의: 이 매핑은 해석이며, KISA 점검 PASS가 ISMS-P 충족을 의미하지 않음
+version: 1
+description: ISMS-P 인증기준 -> KISA Linux/Unix 기술 점검 항목 매핑 (해석. 원본 문서 간 명시적 매핑 아님)
+mappings:
+- isms_p_criterion: 2.5.1
+  name: 사용자 계정 관리
+  kisa_items:
+  - U-07
+  - U-09
+  - U-10
+  - U-11
+  - U-32
+  - U-55
+- isms_p_criterion: 2.5.3
+  name: 사용자 인증
+  kisa_items:
+  - U-03
+  - U-12
+  - U-27
+- isms_p_criterion: 2.5.4
+  name: 비밀번호 관리
+  kisa_items:
+  - U-02
+  - U-03
+- isms_p_criterion: 2.5.5
+  name: 특수 계정 및 권한 관리
+  kisa_items:
+  - U-01
+  - U-05
+  - U-06
+  - U-08
+  - U-57
+  - U-63
+- isms_p_criterion: 2.6.1
+  name: 네트워크 접근
+  kisa_items:
+  - U-28
+  - U-40
+- isms_p_criterion: 2.6.2
+  name: 정보시스템 접근
+  kisa_items:
+  - U-12
+  - U-14
+  - U-15
+  - U-16
+  - U-17
+  - U-18
+  - U-19
+  - U-20
+  - U-21
+  - U-22
+  - U-23
+  - U-24
+  - U-25
+  - U-26
+  - U-28
+  - U-29
+  - U-30
+  - U-31
+  - U-32
+  - U-33
+  - U-37
+- isms_p_criterion: 2.6.6
+  name: 원격접근 통제
+  kisa_items:
+  - U-01
+  - U-27
+- isms_p_criterion: 2.7.1
+  name: 암호정책 적용
+  kisa_items:
+  - U-04
+  - U-13
+  - U-52
+  - U-54
+  - U-59
+- isms_p_criterion: 2.9.4
+  name: 로그 및 접속기록 관리
+  kisa_items:
+  - U-21
+  - U-66
+  - U-67
+- isms_p_criterion: 2.9.6
+  name: 시간 동기화
+  kisa_items:
+  - U-65
+- isms_p_criterion: 2.10.3
+  name: 공개서버 보안
+  kisa_items:
+  - U-34
+  - U-35
+  - U-36
+  - U-37
+  - U-38
+  - U-39
+  - U-40
+  - U-41
+  - U-42
+  - U-43
+  - U-44
+  - U-45
+  - U-46
+  - U-47
+  - U-48
+  - U-49
+  - U-50
+  - U-51
+  - U-52
+  - U-53
+  - U-54
+  - U-55
+  - U-56
+  - U-58
+  - U-59
+  - U-60
+  - U-61
+  - U-62
+- isms_p_criterion: 2.10.8
+  name: 패치관리
+  kisa_items:
+  - U-64
