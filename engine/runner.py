@@ -9,8 +9,8 @@ from .model import Evidence, Result, ResultStatus
 
 SUPPORTED_TYPES = {
     "config_value", "service_status", "account_uid", "account_shell",
-    "account_duplicate", "account_group", "file_owner", "file_mode",
-    "file_existence", "file_scan", "package_version", "document",
+    "account_duplicate", "account_group", "account_home", "file_owner",
+    "file_mode", "file_existence", "file_scan", "package_version", "document",
 }
 
 
@@ -370,7 +370,17 @@ def _result_message(check: dict, status, targets: list[dict], observed: dict, ex
             return "대상 파일이 기대 상태와 일치함"
         return "대상 파일이 기대 상태와 다름"
 
-    if ctype in ("account_shell", "account_group", "package_version", "document"):
+    if ctype == "account_shell":
+        if status == ResultStatus.PASS:
+            return "제한 쉘이 없는 대상 계정이 존재하지 않음"
+        return "제한 쉘이 없는 대상 계정이 존재함"
+
+    if ctype == "account_home":
+        if status == ResultStatus.PASS:
+            return "홈 디렉토리가 없는 계정이 존재하지 않음"
+        return "홈 디렉토리가 없는 계정이 존재함"
+
+    if ctype in ("account_group", "package_version", "document"):
         if status == ResultStatus.PASS:
             return "조건을 충족함"
         return "조건을 충족하지 않음"

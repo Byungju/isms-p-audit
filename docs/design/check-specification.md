@@ -143,8 +143,9 @@ Check는 순수 기술 정의만 담는다. KISA 파생 정보는 저장하지 �
 | `config_value` | 설정 파일의 키-값 |
 | `account_uid` | 계정 UID |
 | `account_gid` | 그룹 GID |
-| `account_shell` | 계정 로그인 쉘 |
+| `account_shell` | 계정 로그인 쉘(제한 쉘 검사 포함) |
 | `account_duplicate` | UID/GID 중복 |
+| `account_home` | 계정 홈 디렉토리 존재 |
 | `service_status` | 서비스/데몬 상태 |
 | `process_running` | 프로세스 실행 여부 |
 | `package_version` | 패키지 설치/버전 |
@@ -212,7 +213,7 @@ targets:
 | --- | --- |
 | `file` | `path`, `field`(owner/mode) |
 | `config` | `path`, `key` |
-| `account` | `source`, `field`(uid/gid/shell), `exclude` |
+| `account` | `source`, `field`(name/uid/gid/home/shell), `exclude`, `names`(선택), `restricted`(선택) |
 | `group` | `source`, `name`(선택) |
 | `scan` | `root`, `recursive`, `criteria`(12-1절) |
 | `service` | `name`, `mechanisms`(선택, 11절) |
@@ -220,6 +221,30 @@ targets:
 | `package` | `name` |
 | `command` | `ref`(구현 계층의 명령 참조) |
 | `document` | `name` |
+
+### account target의 위반 목록 판정
+
+`account` target은 수집 단계에서 **위반 계정 목록**을 필터해 반환하고, `expect: {op: empty}`로 판정한다.
+
+- `account_shell` + `field: shell` + `names` + `restricted`:
+  - `names`(검사 대상 계정명 목록)에 속한 계정 중, `restricted`(허용 제한 쉘 목록, 예: `/bin/false`·`/sbin/nologin`)에 없는 쉘을 가진 계정을 **위반 목록**으로 반환한다.
+  - `names`에 없는 일반 사용자 계정의 쉘은 검사 대상에서 제외한다.
+- `account_home` + `field: home`:
+  - 홈 디렉토리가 존재하지 않는 계정을 **위반 목록**으로 반환한다.
+- `account_duplicate`:
+  - 중복 UID/GID를 가진 계정을 **위반 목록**으로 반환한다.
+
+```yaml
+# U-11 (로그인 불필요 계정의 쉘 제한)
+targets:
+  - kind: account
+    source: /etc/passwd
+    field: shell
+    names: [daemon, bin, sys, adm, listen, nobody, nobody4, noaccess, diag, operator, games, gopher]
+    restricted: [/bin/false, /sbin/nologin]
+expect:
+  op: empty        # 위반 계정 0개
+```
 
 ---
 

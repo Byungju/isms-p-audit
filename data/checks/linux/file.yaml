@@ -413,7 +413,7 @@ checks:
   - kind: file
     path: /home
 - id: CK-lnx-U32-001
-  type: account_shell
+  type: account_home
   description: 홈 디렉토리가 없는 계정 확인
   platforms:
   - linux
@@ -421,13 +421,13 @@ checks:
   targets:
   - kind: account
     source: /etc/passwd
-    field: shell
+    field: home
   expect:
     op: empty
   evidence:
   - kind: account
     path: /etc/passwd
-    field: shell
+    field: home
 - id: CK-lnx-U33-001
   type: file_scan
   description: 의심스러운 숨김 파일 확인(사람 판단)

@@ -390,11 +390,13 @@ checks:
   - kind: account
     source: /etc/passwd
     field: shell
-  expect:
-    op: in
-    value:
+    names:
+    - ftp
+    restricted:
     - /bin/false
     - /sbin/nologin
+  expect:
+    op: empty
   evidence:
   - kind: account
     path: /etc/passwd

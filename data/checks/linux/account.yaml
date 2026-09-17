@@ -227,7 +227,7 @@ checks:
     field: uid
 - id: CK-lnx-U11-001
   type: account_shell
-  description: 불필요한 로그인 쉘 부여 계정 확인
+  description: 로그인 불필요 계정의 쉘 제한 확인
   platforms:
   - linux
   automation: *id001
@@ -235,11 +235,24 @@ checks:
   - kind: account
     source: /etc/passwd
     field: shell
-  expect:
-    op: in
-    value:
+    names:
+    - daemon
+    - bin
+    - sys
+    - adm
+    - listen
+    - nobody
+    - nobody4
+    - noaccess
+    - diag
+    - operator
+    - games
+    - gopher
+    restricted:
     - /bin/false
     - /sbin/nologin
+  expect:
+    op: empty
   evidence:
   - kind: account
     path: /etc/passwd

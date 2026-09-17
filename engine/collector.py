@@ -160,13 +160,18 @@ def _collect_file(target: dict, root: str | None) -> CollectionOutcome:
 def _collect_account(target: dict, root: str | None, ctype: str | None) -> CollectionOutcome:
     """계정 정보(/etc/passwd)에서 필드(name/uid/gid/home/shell)를 수집한다.
 
-    ctype이 account_duplicate면 중복 필드값을 가진 계정명 목록을 반환한다.
+    - ctype=account_duplicate: 중복 필드값을 가진 계정명 목록을 반환한다.
+    - field=shell + names + restricted: names에 속한 계정 중 restricted에 없는 shell을
+      가진 계정(위반) 목록을 반환한다.
+    - field=home: 홈 디렉토리가 존재하지 않는 계정(위반) 목록을 반환한다.
     """
     from collections import Counter
 
     source = target.get("source")
     field = target.get("field") or "uid"
     exclude = target.get("exclude") or []
+    names = target.get("names")
+    restricted = target.get("restricted")
     if not source:
         return CollectionOutcome(error="account target에 source가 없음")
 
@@ -205,6 +210,26 @@ def _collect_account(target: dict, root: str | None, ctype: str | None) -> Colle
             observations=[{"target": source, "attribute": f"{field}_duplicate", "observed": observed_str}],
         )
 
+    # field=home: 홈 디렉토리가 존재하지 않는 계정(위반) 목록
+    if field == "home":
+        violating = [n for n, h in pairs if not _home_exists(h, root)]
+        observed_str = ",".join(violating) if violating else "none"
+        return CollectionOutcome(
+            value=violating,
+            observations=[{"target": source, "attribute": "home", "observed": observed_str}],
+        )
+
+    # field=shell + names + restricted: 제한 쉘 없는 대상 계정(위반) 목록
+    if field == "shell" and names is not None and restricted is not None:
+        names_set = set(names)
+        restricted_set = set(restricted)
+        violating = [n for n, v in pairs if n in names_set and v not in restricted_set]
+        observed_str = ",".join(violating) if violating else "none"
+        return CollectionOutcome(
+            value=violating,
+            observations=[{"target": source, "attribute": "shell", "observed": observed_str}],
+        )
+
     values = [v for _, v in pairs]
     if field == "uid":
         matched = [n for n, v in pairs if v == "0"]
@@ -216,6 +241,13 @@ def _collect_account(target: dict, root: str | None, ctype: str | None) -> Colle
         value=values,
         observations=[{"target": source, "attribute": field, "observed": observed_str}],
     )
+
+
+def _home_exists(home: str, root: str | None) -> bool:
+    """계정의 홈 디렉토리가 실제 filesystem에 존재하는지 판단한다."""
+    if not home:
+        return False
+    return _resolve(root, home).exists()
 
 
 def _collect_group(target: dict, root: str | None) -> CollectionOutcome:
