@@ -80,7 +80,12 @@ checks:
   - kind: scan
     root: /etc/init.d
     recursive: false
-    criteria: world_writable
+    criteria:
+      owner_ne: root
+      mode_not_allowed:
+        owner: rwx
+        group: rwx
+        other: rx
   expect:
     op: empty
   evidence:

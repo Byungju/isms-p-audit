@@ -474,7 +474,34 @@ expect:
 | --- | --- |
 | `root` | 스캔 시작 경로 |
 | `recursive` | 하위 디렉토리 재귀 여부 (기본 false) |
-| `criteria` | 수집 조건(필터). `ownerless` / `suid` / `sgid` / `sticky` / `world_writable` / `hidden` / `device` |
+| `criteria` | 수집 조건(필터). 문자열 enum 또는 predicate 객체(아래 참고) |
+
+#### criteria 형식
+
+`criteria`는 다음 두 가지 형식을 지원한다.
+
+1. **문자열 enum** (기존): `ownerless` / `suid` / `sgid` / `sticky` / `world_writable` / `hidden` / `device`
+
+   ```yaml
+   criteria: world_writable
+   ```
+
+2. **predicate 객체** (확장): 소유자/권한 조건을 결합한다. 각 키는 **OR**로 결합된다(어느 하나라도 충족하면 매칭).
+
+   ```yaml
+   criteria:
+     owner_ne: root
+     mode_not_allowed:
+       owner: rw
+       group: r
+       other: r
+   ```
+
+   - `owner_ne: <name>`: 파일 소유자 이름이 `<name>`이 아니면 매칭.
+   - `mode_not_allowed: {owner, group, other}`: `file_mode.mode_allowed`와 동일 구조.
+     파일 권한이 허용 최대 범위를 초과(`mode & ~mask != 0`)하면 매칭.
+   - OR 의미: `{owner_ne: root, mode_not_allowed: {...}}`는 "소유자≠root **또는** 권한 초과"인 파일을 수집한다.
+   - AND 조건이나 별도 논리식 DSL은 지원하지 않는다.
 
 #### criteria의 의미와 경계
 

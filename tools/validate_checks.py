@@ -35,6 +35,9 @@ BINARY_OPS = {"eq", "ne", "le", "lt", "ge", "gt", "contains", "not_contains", "i
 UNARY_OPS = {"exists", "empty"}
 ALLOWED_OPS = BINARY_OPS | UNARY_OPS
 COMPOSITE_KEYS = {"all", "any", "not"}
+SCAN_CRITERIA_ENUM = {"suid", "sgid", "sticky", "world_writable", "ownerless", "hidden", "device"}
+CRITERIA_KEYS = {"owner_ne", "mode_not_allowed"}
+MODE_WHO = {"owner", "group", "other"}
 AUTO_VALUES = {
     "observation": {"auto", "manual"},
     "assessment": {"auto", "human", "external_data"},
@@ -104,6 +107,40 @@ def validate_expect(expect, ctx: str) -> None:
         err(f"{ctx}: value와 value_ref를 동시에 가질 수 없음")
 
 
+def validate_mode_allowed(ma, ctx: str) -> None:
+    if not isinstance(ma, dict):
+        err(f"{ctx}: mode_allowed는 dict여야 함")
+        return
+    for who, perms in ma.items():
+        if who not in MODE_WHO:
+            err(f"{ctx}: 알 수 없는 mode 주체: {who!r}")
+        if not isinstance(perms, str):
+            err(f"{ctx}: mode 권한은 문자열이어야 함: {perms!r}")
+        elif any(ch not in "rwx" for ch in perms):
+            err(f"{ctx}: 잘못된 mode 권한 문자: {perms!r}")
+
+
+def validate_scan_criteria(criteria, ctx: str) -> None:
+    if isinstance(criteria, str):
+        if criteria not in SCAN_CRITERIA_ENUM:
+            err(f"{ctx}: 알 수 없는 scan criteria: {criteria!r}")
+        return
+    if isinstance(criteria, dict):
+        if not criteria:
+            err(f"{ctx}: criteria 객체가 비어 있음")
+            return
+        for key, val in criteria.items():
+            if key == "owner_ne":
+                if not isinstance(val, str):
+                    err(f"{ctx}: owner_ne는 문자열이어야 함: {val!r}")
+            elif key == "mode_not_allowed":
+                validate_mode_allowed(val, f"{ctx}.mode_not_allowed")
+            else:
+                err(f"{ctx}: 정의되지 않은 criteria key: {key!r}")
+        return
+    err(f"{ctx}: criteria는 문자열 또는 객체여야 함: {criteria!r}")
+
+
 def validate_targets(targets, ctx: str) -> None:
     if not isinstance(targets, list) or not targets:
         err(f"{ctx}: targets가 비어있거나 리스트가 아님")
@@ -128,6 +165,12 @@ def validate_targets(targets, ctx: str) -> None:
             err(f"{ctx}: {kind} target에 name이 없음")
         if kind == "document" and not t.get("name"):
             err(f"{ctx}: document target에 name이 없음")
+        if kind == "scan":
+            criteria = t.get("criteria")
+            if criteria is None:
+                err(f"{ctx}: scan target에 criteria가 없음")
+            else:
+                validate_scan_criteria(criteria, f"{ctx}.criteria")
 
 
 def validate_automation(auto, ctx: str) -> None:

@@ -49,7 +49,12 @@ checks:
   - kind: scan
     root: /var/log
     recursive: false
-    criteria: world_writable
+    criteria:
+      owner_ne: root
+      mode_not_allowed:
+        owner: rw
+        group: r
+        other: r
   expect:
     op: empty
   evidence:

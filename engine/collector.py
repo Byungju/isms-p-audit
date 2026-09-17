@@ -15,6 +15,8 @@ import stat
 from dataclasses import dataclass
 from pathlib import Path
 
+from .evaluator import mode_allowed_mask
+
 
 @dataclass
 class CollectionOutcome:
@@ -351,7 +353,9 @@ def _is_pseudo_fs(entry: Path, base: Path) -> bool:
     return len(rel.parts) == 1 and rel.parts[0] in PSEUDO_FS_DIRS
 
 
-def _matches_criteria(p: Path, criteria: str) -> bool:
+def _matches_criteria(p: Path, criteria) -> bool:
+    if isinstance(criteria, dict):
+        return _matches_criteria_predicate(p, criteria)
     try:
         st = p.stat()
     except OSError:
@@ -375,6 +379,30 @@ def _matches_criteria(p: Path, criteria: str) -> bool:
         return p.name.startswith(".")
     if criteria == "device":
         return stat.S_ISCHR(mode) or stat.S_ISBLK(mode)
+    return False
+
+
+def _owner_name(uid: int) -> str:
+    """UID의 소유자 이름을 반환한다. passwd에 없으면 UID 문자열로 대체한다."""
+    try:
+        return pwd.getpwuid(uid).pw_name
+    except KeyError:
+        return str(uid)
+
+
+def _matches_criteria_predicate(p: Path, criteria: dict) -> bool:
+    """객체형 criteria를 평가한다. 각 조건은 OR로 결합된다(하나라도 충족하면 매칭)."""
+    try:
+        st = p.stat()
+    except OSError:
+        return False
+    if "owner_ne" in criteria:
+        if _owner_name(st.st_uid) != criteria["owner_ne"]:
+            return True
+    if "mode_not_allowed" in criteria:
+        mask = mode_allowed_mask(criteria["mode_not_allowed"])
+        if (stat.S_IMODE(st.st_mode) & ~mask) != 0:
+            return True
     return False
 
 
