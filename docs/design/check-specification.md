@@ -146,6 +146,7 @@ Check는 순수 기술 정의만 담는다. KISA 파생 정보는 저장하지 �
 | `account_shell` | 계정 로그인 쉘(제한 쉘 검사 포함) |
 | `account_duplicate` | UID/GID 중복 |
 | `account_home` | 계정 홈 디렉토리 존재 |
+| `account_home_owner` | 계정 홈 디렉토리 소유자(UID)·other-write 권한 (12-1절) |
 | `service_status` | 서비스/데몬 상태 |
 | `process_running` | 프로세스 실행 여부 |
 | `package_version` | 패키지 설치/버전 |
@@ -611,6 +612,39 @@ group_name, gid, members[]
 
 - Collector가 "중복 UID를 가진 계정"만 필터해 목록으로 반환한다. 별도 `duplicate` operator는 필요 없다.
 - `empty`(0개)면 "중복 없음"=PASS, 아니면 FAIL.
+
+### account_home_owner (홈 디렉터리 소유자·권한)
+
+계정 정보에서 `username → UID → home` 관계를 얻고, 각 계정의 홈 디렉터리를 stat하여
+**소유자 UID 일치 여부**와 **other-write 권한**을 검사한다. join은 Collector 내부에서 수행한다.
+
+```yaml
+- id: CK-lnx-U31-001
+  type: account_home_owner
+  targets:
+    - kind: account
+      source: /etc/passwd
+      root: /home            # scope: 이 경로의 직접 자식 홈 디렉터리만 대상
+  expect:
+    op: empty                # 소유자/권한 위반 홈 디렉터리 0개
+  automation:
+    observation: auto
+    assessment: auto
+```
+
+#### 대상(target: `account`)
+
+| 필드 | 의미 |
+| --- | --- |
+| `source` | 계정 정보 파일(/etc/passwd) |
+| `root` | 검사 대상 홈 디렉터리 scope(직접 자식만). 기본 `/home` |
+
+#### 판정 규칙
+
+- `home`이 `root`의 직접 자식이 아닌 계정은 대상에서 제외한다.
+- 홈 디렉터리가 존재하지 않는 계정은 건너뛴다(존재 검사는 `account_home`이 담당).
+- `stat(home).st_uid != account_uid` 또는 `mode & 0o002`(other-write)이면 위반 목록에 포함한다.
+- 위반 시 evidence에 홈 경로(target)와 observed/expected owner 정보를 남긴다.
 
 ### 판정(expect)의 공통 규칙
 

@@ -23,7 +23,7 @@ KISA_DIR = ROOT / "data" / "kisa" / "linux"
 ALLOWED_TYPES = {
     "file_mode", "file_owner", "file_existence", "config_value",
     "account_uid", "account_gid", "account_shell", "account_duplicate",
-    "account_group", "account_home",
+    "account_group", "account_home", "account_home_owner",
     "service_status", "process_running", "package_version",
     "command_output", "document", "file_scan",
 }

@@ -166,8 +166,12 @@ def _collect_account(target: dict, root: str | None, ctype: str | None) -> Colle
     - field=shell + names + restricted: names에 속한 계정 중 restricted에 없는 shell을
       가진 계정(위반) 목록을 반환한다.
     - field=home: 홈 디렉토리가 존재하지 않는 계정(위반) 목록을 반환한다.
+    - ctype=account_home_owner: 홈 디렉터리 소유자 UID/other-write를 검사한다.
     """
     from collections import Counter
+
+    if ctype == "account_home_owner":
+        return _collect_home_dir_owner(target, root)
 
     source = target.get("source")
     field = target.get("field") or "uid"
@@ -250,6 +254,79 @@ def _home_exists(home: str, root: str | None) -> bool:
     if not home:
         return False
     return _resolve(root, home).exists()
+
+
+def _collect_home_dir_owner(target: dict, root: str | None) -> CollectionOutcome:
+    """계정 홈 디렉터리의 소유자(UID)와 other-write 권한을 검사한다. (account_home_owner)
+
+    - /etc/passwd에서 (name, uid, home)을 얻는다.
+    - root(scope, 기본 /home)의 직접 자식 홈 디렉터리만 대상으로 한다.
+    - 홈 디렉터리가 존재하지 않으면 건너뛴다(존재 검사는 account_home이 담당).
+    - 소유자 UID가 계정 UID와 다르거나 other-write 권한이 있으면 위반 목록에 포함한다.
+    """
+    source = target.get("source")
+    scope = target.get("root") or "/home"
+    if not source:
+        return CollectionOutcome(error="account target에 source가 없음")
+
+    p = _resolve(root, source)
+    if not p.exists():
+        return CollectionOutcome(missing_target=True)
+
+    try:
+        content = p.read_text(encoding="utf-8")
+    except OSError as exc:
+        return CollectionOutcome(error=f"파일 읽기 실패: {exc}")
+
+    scope_base = _resolve(root, scope)
+    violating: list[str] = []
+    observations: list[dict] = []
+
+    for line in content.splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            continue
+        parts = s.split(":")
+        if len(parts) < 7:
+            continue
+        name, uid_str, home = parts[0], parts[2], parts[5]
+        if not home:
+            continue
+        try:
+            uid = int(uid_str)
+        except ValueError:
+            continue
+        home_path = _resolve(root, home)
+        if home_path.parent != scope_base:
+            continue
+        try:
+            st = home_path.stat()
+        except OSError:
+            continue
+
+        owner_mismatch = st.st_uid != uid
+        other_write = bool(st.st_mode & 0o002)
+        if owner_mismatch or other_write:
+            violating.append(home)
+            if owner_mismatch:
+                observations.append({
+                    "target": home,
+                    "attribute": "owner",
+                    "observed": _owner_name(st.st_uid),
+                    "expected": name,
+                })
+            if other_write:
+                observations.append({
+                    "target": home,
+                    "attribute": "mode",
+                    "observed": f"{stat.S_IMODE(st.st_mode):04o}",
+                    "expected": "other-write 없음",
+                })
+
+    if not observations:
+        observations = [{"target": source, "attribute": "home_owner", "observed": "none"}]
+
+    return CollectionOutcome(value=violating, observations=observations)
 
 
 def _collect_group(target: dict, root: str | None) -> CollectionOutcome:

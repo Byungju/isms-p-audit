@@ -405,23 +405,21 @@ checks:
     path: /etc/profile
     field: umask
 - id: CK-lnx-U31-001
-  type: file_scan
+  type: account_home_owner
   description: 홈 디렉토리 소유자/권한 확인
   platforms:
   - linux
   automation: *id001
   targets:
-  - kind: scan
+  - kind: account
+    source: /etc/passwd
     root: /home
-    recursive: false
-    types:
-    - directory
-    criteria: world_writable
   expect:
     op: empty
   evidence:
-  - kind: file
-    path: /home
+  - kind: account
+    path: /etc/passwd
+    field: home
 - id: CK-lnx-U32-001
   type: account_home
   description: 홈 디렉토리가 없는 계정 확인

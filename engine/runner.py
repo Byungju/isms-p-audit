@@ -9,7 +9,8 @@ from .model import Evidence, Result, ResultStatus
 
 SUPPORTED_TYPES = {
     "config_value", "service_status", "account_uid", "account_shell",
-    "account_duplicate", "account_group", "account_home", "file_owner",
+    "account_duplicate", "account_group", "account_home", "account_home_owner",
+    "file_owner",
     "file_mode", "file_existence", "file_scan", "package_version", "document",
 }
 
@@ -278,7 +279,7 @@ def _to_evidence(obs: dict, expected: str | None = None) -> Evidence:
         target=obs["target"],
         attribute=obs["attribute"],
         observed=obs["observed"],
-        expected=expected,
+        expected=expected if expected is not None else obs.get("expected"),
     )
 
 
@@ -379,6 +380,11 @@ def _result_message(check: dict, status, targets: list[dict], observed: dict, ex
         if status == ResultStatus.PASS:
             return "홈 디렉토리가 없는 계정이 존재하지 않음"
         return "홈 디렉토리가 없는 계정이 존재함"
+
+    if ctype == "account_home_owner":
+        if status == ResultStatus.PASS:
+            return "홈 디렉터리 소유자/권한이 부적절한 계정이 존재하지 않음"
+        return "홈 디렉터리 소유자/권한이 부적절한 계정이 존재함"
 
     if ctype in ("account_group", "package_version", "document"):
         if status == ResultStatus.PASS:

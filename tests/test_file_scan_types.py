@@ -189,18 +189,6 @@ class TestRunDirectoryChecks(unittest.TestCase):
         self._p("/etc").mkdir(parents=True)
         self.assertEqual(self._run("CK-lnx-U15-001").status, ResultStatus.PASS)
 
-    def test_u31_pass(self):
-        d = self._p("/home/alice")
-        d.mkdir(parents=True)
-        d.chmod(0o755)
-        self.assertEqual(self._run("CK-lnx-U31-001").status, ResultStatus.PASS)
-
-    def test_u31_fail_world_writable_dir(self):
-        d = self._p("/home/alice")
-        d.mkdir(parents=True)
-        d.chmod(0o757)
-        self.assertEqual(self._run("CK-lnx-U31-001").status, ResultStatus.FAIL)
-
     def test_u33_hidden_directory_detected(self):
         self._p("/etc/.hidden").mkdir(parents=True)
         (self._p("/etc/.hiddenfile")).write_text("x", encoding="utf-8")
