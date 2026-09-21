@@ -476,6 +476,7 @@ expect:
 | `root` | 스캔 시작 경로 |
 | `recursive` | 하위 디렉토리 재귀 여부 (기본 false) |
 | `types` | 매칭 대상 entry 타입 목록(선택). `file` / `directory` / `device`. 기본값 `[file, device]` |
+| `xdev` | 파일시스템 경계 제한(선택, 기본 false). true면 scan root와 다른 `st_dev`로는 재귀하지 않음 |
 | `criteria` | 수집 조건(필터). 문자열 enum 또는 predicate 객체(아래 참고) |
 
 #### traversal 및 types semantics
@@ -485,6 +486,8 @@ expect:
 - `recursive: true`는 하위 디렉토리로 재귀 진입하며 각 entry를 평가한다.
 - 디렉터리의 "재귀 진입"과 "criteria 매칭"은 독립적이다. `types`에 `directory`가 포함되면
   디렉터리도 criteria 평가 대상이 된다.
+- `xdev: true`면 디렉터리가 scan root와 다른 파일시스템(`st_dev`)일 때 그 아래로 재귀하지 않는다.
+  단, 마운트 지점 디렉터리 자체는 criteria 매칭 평가에서 제외하지 않는다(`find -xdev`와 동일).
 - symlink는 매칭·재귀·추적 모두 하지 않는다(건너뛴다).
 
 | type 값 | 의미 |
@@ -527,7 +530,11 @@ targets:
    - `owner_ne: <name>`: 파일 소유자 이름이 `<name>`이 아니면 매칭.
    - `mode_not_allowed: {owner, group, other}`: `file_mode.mode_allowed`와 동일 구조.
      파일 권한이 허용 최대 범위를 초과(`mode & ~mask != 0`)하면 매칭.
+   - `nouser: true`: 소유 UID가 시스템에 등록되지 않았으면(소유자 없음) 매칭.
+     문자열 enum `ownerless`와 동일 의미.
+   - `nogroup: true`: 소유 GID가 시스템에 등록되지 않았으면(그룹 없음) 매칭.
    - OR 의미: `{owner_ne: root, mode_not_allowed: {...}}`는 "소유자≠root **또는** 권한 초과"인 파일을 수집한다.
+     `{nouser: true, nogroup: true}`는 "소유자 없음 **또는** 그룹 없음"인 파일을 수집한다.
    - AND 조건이나 별도 논리식 DSL은 지원하지 않는다.
 
 #### criteria의 의미와 경계

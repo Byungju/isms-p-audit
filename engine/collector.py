@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import grp
 import os
 import pwd
 import re
@@ -380,12 +381,14 @@ def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
 
     - types(기본 [file, device])에 따라 file/directory/device를 매칭 대상으로 한다.
     - pseudo filesystem(/proc, /sys, /run, /dev)은 recursive scan에서 제외한다.
+    - xdev=true면 scan root와 다른 파일시스템(st_dev)으로는 재귀하지 않는다.
     - scan root 자신은 평가 대상이 아니며, 직접 자식부터 평가한다.
     - 수집 결과(일치 entry 목록)는 목록 형태로 관찰값을 반환한다.
     """
     scan_root = target.get("root")
     criteria = target.get("criteria")
     recursive = bool(target.get("recursive", False))
+    xdev = bool(target.get("xdev", False))
     types = target.get("types") or ["file", "device"]
     if not scan_root or not criteria:
         return CollectionOutcome(error="scan target에 root/criteria가 없음")
@@ -393,6 +396,13 @@ def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
     base = _resolve(root, scan_root)
     if not base.exists():
         return CollectionOutcome(error=f"스캔 경로가 없음: {scan_root}")
+
+    base_dev: int | None = None
+    if xdev:
+        try:
+            base_dev = base.stat().st_dev
+        except OSError:
+            base_dev = None
 
     matched: list[str] = []
 
@@ -408,7 +418,13 @@ def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
                 if entry.is_dir():
                     if _is_pseudo_fs(entry, base):
                         continue
-                    if recursive:
+                    should_recurse = recursive
+                    if should_recurse and xdev and base_dev is not None:
+                        try:
+                            should_recurse = entry.stat().st_dev == base_dev
+                        except OSError:
+                            should_recurse = False
+                    if should_recurse:
                         walk(entry)
                 if _entry_type_matches(entry, types) and _matches_criteria(entry, criteria):
                     matched.append(str(entry))
@@ -471,11 +487,7 @@ def _matches_criteria(p: Path, criteria) -> bool:
     if criteria == "world_writable":
         return bool(mode & 0o002)
     if criteria == "ownerless":
-        try:
-            pwd.getpwuid(st.st_uid)
-            return False
-        except KeyError:
-            return True
+        return _is_nouser(st.st_uid)
     if criteria == "hidden":
         return p.name.startswith(".")
     if criteria == "device":
@@ -491,6 +503,24 @@ def _owner_name(uid: int) -> str:
         return str(uid)
 
 
+def _is_nouser(uid: int) -> bool:
+    """UID가 시스템에 등록되지 않았으면(소유자 없음) True."""
+    try:
+        pwd.getpwuid(uid)
+        return False
+    except KeyError:
+        return True
+
+
+def _is_nogroup(gid: int) -> bool:
+    """GID가 시스템에 등록되지 않았으면(그룹 없음) True."""
+    try:
+        grp.getgrgid(gid)
+        return False
+    except KeyError:
+        return True
+
+
 def _matches_criteria_predicate(p: Path, criteria: dict) -> bool:
     """객체형 criteria를 평가한다. 각 조건은 OR로 결합된다(하나라도 충족하면 매칭)."""
     try:
@@ -504,6 +534,10 @@ def _matches_criteria_predicate(p: Path, criteria: dict) -> bool:
         mask = mode_allowed_mask(criteria["mode_not_allowed"])
         if (stat.S_IMODE(st.st_mode) & ~mask) != 0:
             return True
+    if criteria.get("nouser") and _is_nouser(st.st_uid):
+        return True
+    if criteria.get("nogroup") and _is_nogroup(st.st_gid):
+        return True
     return False
 
 

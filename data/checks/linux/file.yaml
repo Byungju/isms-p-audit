@@ -20,7 +20,7 @@ checks:
     path: /root/.profile
 - id: CK-lnx-U15-001
   type: file_scan
-  description: 소유자가 없는 파일 존재 여부 확인
+  description: 소유자/그룹이 없는 파일 및 디렉터리 확인
   platforms:
   - linux
   automation: *id001
@@ -28,10 +28,13 @@ checks:
   - kind: scan
     root: /
     recursive: true
+    xdev: true
     types:
     - file
     - directory
-    criteria: ownerless
+    criteria:
+      nouser: true
+      nogroup: true
   expect:
     op: empty
   evidence:

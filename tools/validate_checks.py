@@ -136,6 +136,9 @@ def validate_scan_criteria(criteria, ctx: str) -> None:
                     err(f"{ctx}: owner_ne는 문자열이어야 함: {val!r}")
             elif key == "mode_not_allowed":
                 validate_mode_allowed(val, f"{ctx}.mode_not_allowed")
+            elif key in ("nouser", "nogroup"):
+                if not isinstance(val, bool):
+                    err(f"{ctx}: {key}는 bool이어야 함: {val!r}")
             else:
                 err(f"{ctx}: 정의되지 않은 criteria key: {key!r}")
         return
@@ -180,6 +183,8 @@ def validate_targets(targets, ctx: str) -> None:
                     for ty in types:
                         if ty not in SCAN_TYPES:
                             err(f"{ctx}: 알 수 없는 scan type: {ty!r}")
+            if "xdev" in t and not isinstance(t.get("xdev"), bool):
+                err(f"{ctx}: scan xdev는 bool이어야 함: {t.get('xdev')!r}")
 
 
 def validate_automation(auto, ctx: str) -> None:
