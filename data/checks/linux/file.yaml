@@ -28,6 +28,9 @@ checks:
   - kind: scan
     root: /
     recursive: true
+    types:
+    - file
+    - directory
     criteria: ownerless
   expect:
     op: empty
@@ -411,6 +414,8 @@ checks:
   - kind: scan
     root: /home
     recursive: false
+    types:
+    - directory
     criteria: world_writable
   expect:
     op: empty
@@ -443,6 +448,9 @@ checks:
   - kind: scan
     root: /
     recursive: true
+    types:
+    - file
+    - directory
     criteria: hidden
   expect:
     op: empty

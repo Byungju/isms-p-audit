@@ -38,6 +38,7 @@ COMPOSITE_KEYS = {"all", "any", "not"}
 SCAN_CRITERIA_ENUM = {"suid", "sgid", "sticky", "world_writable", "ownerless", "hidden", "device"}
 CRITERIA_KEYS = {"owner_ne", "mode_not_allowed"}
 MODE_WHO = {"owner", "group", "other"}
+SCAN_TYPES = {"file", "directory", "device"}
 AUTO_VALUES = {
     "observation": {"auto", "manual"},
     "assessment": {"auto", "human", "external_data"},
@@ -171,6 +172,14 @@ def validate_targets(targets, ctx: str) -> None:
                 err(f"{ctx}: scan target에 criteria가 없음")
             else:
                 validate_scan_criteria(criteria, f"{ctx}.criteria")
+            types = t.get("types")
+            if types is not None:
+                if not isinstance(types, list) or not types:
+                    err(f"{ctx}: scan types는 비어있지 않은 리스트여야 함")
+                else:
+                    for ty in types:
+                        if ty not in SCAN_TYPES:
+                            err(f"{ctx}: 알 수 없는 scan type: {ty!r}")
 
 
 def validate_automation(auto, ctx: str) -> None:

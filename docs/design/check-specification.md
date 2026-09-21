@@ -474,7 +474,33 @@ expect:
 | --- | --- |
 | `root` | 스캔 시작 경로 |
 | `recursive` | 하위 디렉토리 재귀 여부 (기본 false) |
+| `types` | 매칭 대상 entry 타입 목록(선택). `file` / `directory` / `device`. 기본값 `[file, device]` |
 | `criteria` | 수집 조건(필터). 문자열 enum 또는 predicate 객체(아래 참고) |
+
+#### traversal 및 types semantics
+
+- **scan root 자신은 평가 대상이 아니다.** scan root의 직접 자식부터 평가한다.
+- `recursive: false`는 scan root의 **직접 자식만** 평가하고 하위 디렉토리로 진입하지 않는다.
+- `recursive: true`는 하위 디렉토리로 재귀 진입하며 각 entry를 평가한다.
+- 디렉터리의 "재귀 진입"과 "criteria 매칭"은 독립적이다. `types`에 `directory`가 포함되면
+  디렉터리도 criteria 평가 대상이 된다.
+- symlink는 매칭·재귀·추적 모두 하지 않는다(건너뛴다).
+
+| type 값 | 의미 |
+| --- | --- |
+| `file` | regular file (`S_ISREG`) |
+| `directory` | 디렉터리 (`S_ISDIR`) |
+| `device` | character/block device (`S_ISCHR`\|`S_ISBLK`) |
+
+```yaml
+# U-31 (홈 디렉터리 자체 검사)
+targets:
+  - kind: scan
+    root: /home
+    recursive: false
+    types: [directory]
+    criteria: world_writable
+```
 
 #### criteria 형식
 

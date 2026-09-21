@@ -299,14 +299,17 @@ PSEUDO_FS_DIRS = {"proc", "sys", "run", "dev"}
 
 
 def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
-    """디렉토리 하위 파일을 criteria에 맞게 열거한다. (file_scan)
+    """디렉토리 하위 entry를 criteria에 맞게 열거한다. (file_scan)
 
+    - types(기본 [file, device])에 따라 file/directory/device를 매칭 대상으로 한다.
     - pseudo filesystem(/proc, /sys, /run, /dev)은 recursive scan에서 제외한다.
-    - 수집 결과(일치 파일 목록)는 목록 형태로 관찰값을 반환한다.
+    - scan root 자신은 평가 대상이 아니며, 직접 자식부터 평가한다.
+    - 수집 결과(일치 entry 목록)는 목록 형태로 관찰값을 반환한다.
     """
     scan_root = target.get("root")
     criteria = target.get("criteria")
     recursive = bool(target.get("recursive", False))
+    types = target.get("types") or ["file", "device"]
     if not scan_root or not criteria:
         return CollectionOutcome(error="scan target에 root/criteria가 없음")
 
@@ -330,8 +333,7 @@ def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
                         continue
                     if recursive:
                         walk(entry)
-                    continue
-                if _matches_criteria(entry, criteria):
+                if _entry_type_matches(entry, types) and _matches_criteria(entry, criteria):
                     matched.append(str(entry))
             except OSError:
                 continue
@@ -342,6 +344,28 @@ def _collect_scan(target: dict, root: str | None) -> CollectionOutcome:
         value=matched,
         observations=[{"target": scan_root, "attribute": criteria, "observed": matched}],
     )
+
+
+def _entry_type_matches(entry: Path, types: list[str]) -> bool:
+    """entry의 파일 타입이 types(매칭 대상)에 포함되는지 판단한다.
+
+    - file: regular file (S_ISREG)
+    - directory: 디렉터리 (S_ISDIR)
+    - device: character/block device (S_ISCHR|S_ISBLK)
+    symlink는 호출 전에 걸러진다.
+    """
+    try:
+        st = entry.stat()
+    except OSError:
+        return False
+    mode = st.st_mode
+    if "directory" in types and stat.S_ISDIR(mode):
+        return True
+    if "file" in types and stat.S_ISREG(mode):
+        return True
+    if "device" in types and (stat.S_ISCHR(mode) or stat.S_ISBLK(mode)):
+        return True
+    return False
 
 
 def _is_pseudo_fs(entry: Path, base: Path) -> bool:
