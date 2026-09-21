@@ -528,14 +528,37 @@ targets:
    ```
 
    - `owner_ne: <name>`: 파일 소유자 이름이 `<name>`이 아니면 매칭.
+   - `owner_eq: <name>`: 파일 소유자 이름이 `<name>`이면 매칭(`owner_ne`의 반대 의미).
    - `mode_not_allowed: {owner, group, other}`: `file_mode.mode_allowed`와 동일 구조.
      파일 권한이 허용 최대 범위를 초과(`mode & ~mask != 0`)하면 매칭.
    - `nouser: true`: 소유 UID가 시스템에 등록되지 않았으면(소유자 없음) 매칭.
      문자열 enum `ownerless`와 동일 의미.
    - `nogroup: true`: 소유 GID가 시스템에 등록되지 않았으면(그룹 없음) 매칭.
+   - `suid: true` / `sgid: true`: 파일에 SUID/SGID 비트가 설정되어 있으면 매칭.
+     문자열 enum `suid`/`sgid`와 동일 의미.
    - OR 의미: `{owner_ne: root, mode_not_allowed: {...}}`는 "소유자≠root **또는** 권한 초과"인 파일을 수집한다.
      `{nouser: true, nogroup: true}`는 "소유자 없음 **또는** 그룹 없음"인 파일을 수집한다.
-   - AND 조건이나 별도 논리식 DSL은 지원하지 않는다.
+
+3. **`all`/`any` 결합** (확장): "AND로 묶인 flat-OR 그룹들"이라는 고정 2단 패턴만 지원한다.
+
+   ```yaml
+   # U-23: owner=root AND (SUID OR SGID)
+   criteria:
+     all:
+       - owner_eq: root
+       - any:
+           - suid: true
+           - sgid: true
+   ```
+
+   - `all` 리스트의 각 항목은 AND로 결합된다.
+   - `all` 항목은 flat predicate dict 또는 `{any: [...]}` 하나다.
+   - `any` 리스트 안의 항목들은 OR로 결합되며, flat predicate dict만 허용된다.
+   - 3단 이상 중첩(`any` 안의 `all`/`any`, `all` 항목의 `all`)은 지원하지 않는다.
+   - `any`는 `all` 내부에서만 등장한다(top-level 단독 `any`는 flat dict와 의미가 중복되므로 불허).
+   - 일반적인 boolean 표현식 DSL은 지원하지 않는다. 위 2단 `all`/`any` 패턴은
+     KISA 원문이 "owner AND (조건1 OR 조건2)" 형태를 요구하는 경우(U-23 등)를 위한
+     한정된 예외다.
 
 #### criteria의 의미와 경계
 

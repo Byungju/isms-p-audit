@@ -116,7 +116,7 @@ items:
   pass: 주요 실행 파일의 권한에 SUID와 SGID에 대한 설정이 부여되어 있지 않은 경우
   fail: 주요 실행 파일의 권한에 SUID와 SGID에 대한 설정이 부여된 경우
   automation: SEMI
-  evidence: 주요 실행 파일 SUID/SGID/Sticky bit
+  evidence: 'find / -user root -type f \( -perm -04000 -o -perm -02000 \) -xdev -exec ls -al {} \;'
   isms_p:
   - 2.6.2
 - id: U-24

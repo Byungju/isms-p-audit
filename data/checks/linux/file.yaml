@@ -279,7 +279,7 @@ checks:
     field: mode
 - id: CK-lnx-U23-001
   type: file_scan
-  description: SUID/SGID 설정 파일 존재 여부 확인(사람 판단)
+  description: root 소유 SUID/SGID 설정 파일 존재 여부 확인(사람 판단)
   platforms:
   - linux
   automation: &id002
@@ -289,7 +289,15 @@ checks:
   - kind: scan
     root: /
     recursive: true
-    criteria: suid
+    xdev: true
+    types:
+    - file
+    criteria:
+      all:
+      - owner_eq: root
+      - any:
+        - suid: true
+        - sgid: true
   expect:
     op: empty
   evidence:

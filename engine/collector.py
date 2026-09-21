@@ -472,6 +472,8 @@ def _is_pseudo_fs(entry: Path, base: Path) -> bool:
 
 def _matches_criteria(p: Path, criteria) -> bool:
     if isinstance(criteria, dict):
+        if "all" in criteria:
+            return _matches_all(p, criteria["all"])
         return _matches_criteria_predicate(p, criteria)
     try:
         st = p.stat()
@@ -479,9 +481,9 @@ def _matches_criteria(p: Path, criteria) -> bool:
         return False
     mode = st.st_mode
     if criteria == "suid":
-        return bool(mode & stat.S_ISUID)
+        return _has_suid(mode)
     if criteria == "sgid":
-        return bool(mode & stat.S_ISGID)
+        return _has_sgid(mode)
     if criteria == "sticky":
         return bool(mode & stat.S_ISVTX)
     if criteria == "world_writable":
@@ -521,14 +523,27 @@ def _is_nogroup(gid: int) -> bool:
         return True
 
 
+def _has_suid(mode: int) -> bool:
+    """파일 mode에 SUID 비트가 설정되어 있으면 True."""
+    return bool(mode & stat.S_ISUID)
+
+
+def _has_sgid(mode: int) -> bool:
+    """파일 mode에 SGID 비트가 설정되어 있으면 True."""
+    return bool(mode & stat.S_ISGID)
+
+
 def _matches_criteria_predicate(p: Path, criteria: dict) -> bool:
-    """객체형 criteria를 평가한다. 각 조건은 OR로 결합된다(하나라도 충족하면 매칭)."""
+    """flat predicate 객체를 평가한다. 각 키는 OR로 결합된다(하나라도 충족하면 매칭)."""
     try:
         st = p.stat()
     except OSError:
         return False
     if "owner_ne" in criteria:
         if _owner_name(st.st_uid) != criteria["owner_ne"]:
+            return True
+    if "owner_eq" in criteria:
+        if _owner_name(st.st_uid) == criteria["owner_eq"]:
             return True
     if "mode_not_allowed" in criteria:
         mask = mode_allowed_mask(criteria["mode_not_allowed"])
@@ -538,7 +553,31 @@ def _matches_criteria_predicate(p: Path, criteria: dict) -> bool:
         return True
     if criteria.get("nogroup") and _is_nogroup(st.st_gid):
         return True
+    if criteria.get("suid") and _has_suid(st.st_mode):
+        return True
+    if criteria.get("sgid") and _has_sgid(st.st_mode):
+        return True
     return False
+
+
+def _matches_all(p: Path, items: list) -> bool:
+    """`all` 리스트의 각 항목을 AND로 결합해 평가한다.
+
+    - 항목이 `{any: [...]}`면 그 안을 OR로 평가한다.
+    - 그 외 항목은 flat predicate로 평가한다.
+    """
+    for item in items:
+        if isinstance(item, dict) and "any" in item:
+            if not _matches_any(p, item["any"]):
+                return False
+        elif not _matches_criteria_predicate(p, item):
+            return False
+    return True
+
+
+def _matches_any(p: Path, items: list) -> bool:
+    """`any` 리스트의 flat predicate 중 하나라도 충족하면 True."""
+    return any(_matches_criteria_predicate(p, item) for item in items)
 
 
 def _collect_package(target: dict, root: str | None) -> CollectionOutcome:

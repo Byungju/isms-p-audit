@@ -36,7 +36,7 @@ UNARY_OPS = {"exists", "empty"}
 ALLOWED_OPS = BINARY_OPS | UNARY_OPS
 COMPOSITE_KEYS = {"all", "any", "not"}
 SCAN_CRITERIA_ENUM = {"suid", "sgid", "sticky", "world_writable", "ownerless", "hidden", "device"}
-CRITERIA_KEYS = {"owner_ne", "mode_not_allowed"}
+CRITERIA_KEYS = {"owner_ne", "owner_eq", "mode_not_allowed", "nouser", "nogroup", "suid", "sgid"}
 MODE_WHO = {"owner", "group", "other"}
 SCAN_TYPES = {"file", "directory", "device"}
 AUTO_VALUES = {
@@ -121,26 +121,78 @@ def validate_mode_allowed(ma, ctx: str) -> None:
             err(f"{ctx}: 잘못된 mode 권한 문자: {perms!r}")
 
 
+def validate_flat_predicate(d, ctx: str) -> None:
+    """flat predicate dict의 키·타입을 검증한다(내부 키는 OR 결합)."""
+    if not isinstance(d, dict):
+        err(f"{ctx}: predicate는 dict여야 함")
+        return
+    if not d:
+        err(f"{ctx}: predicate가 비어 있음")
+        return
+    for key, val in d.items():
+        if key in ("owner_ne", "owner_eq"):
+            if not isinstance(val, str):
+                err(f"{ctx}: {key}는 문자열이어야 함: {val!r}")
+        elif key == "mode_not_allowed":
+            validate_mode_allowed(val, f"{ctx}.mode_not_allowed")
+        elif key in ("nouser", "nogroup", "suid", "sgid"):
+            if not isinstance(val, bool):
+                err(f"{ctx}: {key}는 bool이어야 함: {val!r}")
+        else:
+            err(f"{ctx}: 정의되지 않은 criteria key: {key!r}")
+
+
+def _validate_all(criteria, ctx: str) -> None:
+    if set(criteria.keys()) != {"all"}:
+        err(f"{ctx}: all은 다른 criteria 키와 함께 쓸 수 없음")
+    items = criteria["all"]
+    if not isinstance(items, list) or not items:
+        err(f"{ctx}: all 값은 비어있지 않은 리스트여야 함")
+        return
+    for i, item in enumerate(items):
+        ictx = f"{ctx}.all[{i}]"
+        if not isinstance(item, dict):
+            err(f"{ictx}: all 항목은 dict여야 함")
+            continue
+        if "any" in item:
+            if set(item.keys()) != {"any"}:
+                err(f"{ictx}: any는 다른 criteria 키와 함께 쓸 수 없음")
+            _validate_any(item["any"], f"{ictx}.any")
+        else:
+            if "all" in item:
+                err(f"{ictx}: 3단 이상 중첩은 지원하지 않음")
+            else:
+                validate_flat_predicate(item, ictx)
+
+
+def _validate_any(items, ctx: str) -> None:
+    if not isinstance(items, list) or not items:
+        err(f"{ctx}: any 값은 비어있지 않은 리스트여야 함")
+        return
+    for i, item in enumerate(items):
+        ictx = f"{ctx}[{i}]"
+        if not isinstance(item, dict):
+            err(f"{ictx}: any 항목은 dict여야 함")
+            continue
+        if "all" in item or "any" in item:
+            err(f"{ictx}: 3단 이상 중첩은 지원하지 않음")
+            continue
+        validate_flat_predicate(item, ictx)
+
+
 def validate_scan_criteria(criteria, ctx: str) -> None:
     if isinstance(criteria, str):
         if criteria not in SCAN_CRITERIA_ENUM:
             err(f"{ctx}: 알 수 없는 scan criteria: {criteria!r}")
         return
     if isinstance(criteria, dict):
-        if not criteria:
-            err(f"{ctx}: criteria 객체가 비어 있음")
+        if "all" in criteria:
+            _validate_all(criteria, ctx)
             return
-        for key, val in criteria.items():
-            if key == "owner_ne":
-                if not isinstance(val, str):
-                    err(f"{ctx}: owner_ne는 문자열이어야 함: {val!r}")
-            elif key == "mode_not_allowed":
-                validate_mode_allowed(val, f"{ctx}.mode_not_allowed")
-            elif key in ("nouser", "nogroup"):
-                if not isinstance(val, bool):
-                    err(f"{ctx}: {key}는 bool이어야 함: {val!r}")
-            else:
-                err(f"{ctx}: 정의되지 않은 criteria key: {key!r}")
+        if "any" in criteria:
+            err(f"{ctx}: any는 all 내부에서만 허용됨")
+            return
+        validate_flat_predicate(criteria, ctx)
         return
     err(f"{ctx}: criteria는 문자열 또는 객체여야 함: {criteria!r}")
 
