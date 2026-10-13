@@ -168,11 +168,15 @@ def _collect_account(target: dict, root: str | None, ctype: str | None) -> Colle
       가진 계정(위반) 목록을 반환한다.
     - field=home: 홈 디렉토리가 존재하지 않는 계정(위반) 목록을 반환한다.
     - ctype=account_home_owner: 홈 디렉터리 소유자 UID/other-write를 검사한다.
+    - ctype=account_home_file: 홈 디렉터리 내 지정 파일 소유자/권한을 검사한다.
     """
     from collections import Counter
 
     if ctype == "account_home_owner":
         return _collect_home_dir_owner(target, root)
+
+    if ctype == "account_home_file":
+        return _collect_home_env_files(target, root)
 
     source = target.get("source")
     field = target.get("field") or "uid"
@@ -257,6 +261,33 @@ def _home_exists(home: str, root: str | None) -> bool:
     return _resolve(root, home).exists()
 
 
+def _iter_scoped_accounts(content: str, root: str | None, scope: str):
+    """/etc/passwd 내용에서 scope의 직접 자식 home을 가진 계정을 순회한다.
+
+    - 각 항목은 (name, uid, home, home_path)를 yield한다.
+    - home이 scope의 직접 자식이 아닌 계정, uid가 정수로 파싱되지 않는 계정은 제외.
+    """
+    scope_base = _resolve(root, scope)
+    for line in content.splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            continue
+        parts = s.split(":")
+        if len(parts) < 7:
+            continue
+        name, uid_str, home = parts[0], parts[2], parts[5]
+        if not home:
+            continue
+        try:
+            uid = int(uid_str)
+        except ValueError:
+            continue
+        home_path = _resolve(root, home)
+        if home_path.parent != scope_base:
+            continue
+        yield name, uid, home, home_path
+
+
 def _collect_home_dir_owner(target: dict, root: str | None) -> CollectionOutcome:
     """계정 홈 디렉터리의 소유자(UID)와 other-write 권한을 검사한다. (account_home_owner)
 
@@ -279,27 +310,10 @@ def _collect_home_dir_owner(target: dict, root: str | None) -> CollectionOutcome
     except OSError as exc:
         return CollectionOutcome(error=f"파일 읽기 실패: {exc}")
 
-    scope_base = _resolve(root, scope)
     violating: list[str] = []
     observations: list[dict] = []
 
-    for line in content.splitlines():
-        s = line.strip()
-        if not s or s.startswith("#"):
-            continue
-        parts = s.split(":")
-        if len(parts) < 7:
-            continue
-        name, uid_str, home = parts[0], parts[2], parts[5]
-        if not home:
-            continue
-        try:
-            uid = int(uid_str)
-        except ValueError:
-            continue
-        home_path = _resolve(root, home)
-        if home_path.parent != scope_base:
-            continue
+    for name, uid, home, home_path in _iter_scoped_accounts(content, root, scope):
         try:
             st = home_path.stat()
         except OSError:
@@ -326,6 +340,65 @@ def _collect_home_dir_owner(target: dict, root: str | None) -> CollectionOutcome
 
     if not observations:
         observations = [{"target": source, "attribute": "home_owner", "observed": "none"}]
+
+    return CollectionOutcome(value=violating, observations=observations)
+
+
+def _collect_home_env_files(target: dict, root: str | None) -> CollectionOutcome:
+    """홈 디렉터리 내 환경변수 파일의 소유자/권한을 검사한다. (account_home_file)
+
+    - /etc/passwd에서 (name, uid, home)을 얻고 scope(root)의 직접 자식 home만 대상.
+    - 각 계정 home의 files 목록 파일을 확인한다. 파일이 없으면 건너뛴다(미대상).
+    - owner가 root(0) 또는 계정 UID가 아니거나, group-write/other-write가 있으면 위반.
+    """
+    source = target.get("source")
+    scope = target.get("root") or "/home"
+    files = target.get("files") or []
+    if not source:
+        return CollectionOutcome(error="account target에 source가 없음")
+
+    p = _resolve(root, source)
+    if not p.exists():
+        return CollectionOutcome(missing_target=True)
+
+    try:
+        content = p.read_text(encoding="utf-8")
+    except OSError as exc:
+        return CollectionOutcome(error=f"파일 읽기 실패: {exc}")
+
+    violating: list[str] = []
+    observations: list[dict] = []
+
+    for name, uid, home, home_path in _iter_scoped_accounts(content, root, scope):
+        for fname in files:
+            fp = home_path / fname
+            try:
+                st = fp.stat()
+            except OSError:
+                continue
+
+            owner_bad = st.st_uid not in (0, uid)
+            group_or_other_write = bool(st.st_mode & (stat.S_IWGRP | stat.S_IWOTH))
+            if owner_bad or group_or_other_write:
+                rel = f"{home}/{fname}"
+                violating.append(rel)
+                if owner_bad:
+                    observations.append({
+                        "target": rel,
+                        "attribute": "owner",
+                        "observed": _owner_name(st.st_uid),
+                        "expected": f"root 또는 {name}",
+                    })
+                if group_or_other_write:
+                    observations.append({
+                        "target": rel,
+                        "attribute": "mode",
+                        "observed": f"{stat.S_IMODE(st.st_mode):04o}",
+                        "expected": "group/other write 없음",
+                    })
+
+    if not observations:
+        observations = [{"target": source, "attribute": "home_file", "observed": "none"}]
 
     return CollectionOutcome(value=violating, observations=observations)
 

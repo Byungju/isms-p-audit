@@ -127,7 +127,7 @@ items:
   pass: 홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되어 있고, root 계정과 소유자만 쓰기 권한이 부여된 경우
   fail: 홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되지 않거나, root 계정과 소유자 외에 쓰기 권한이 부여된 경우
   automation: AUTO
-  evidence: 환경변수 파일(.profile, .bashrc 등)
+  evidence: '홈 디렉터리 환경변수 파일(.profile, .kshrc, .cshrc, .bashrc, .bash_profile, .login, .exrc, .netrc 등) — 소유자 root/해당계정, root/소유자 외 쓰기 권한 없음'
   isms_p:
   - 2.6.2
 - id: U-25

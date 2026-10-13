@@ -10,6 +10,7 @@ from .model import Evidence, Result, ResultStatus
 SUPPORTED_TYPES = {
     "config_value", "service_status", "account_uid", "account_shell",
     "account_duplicate", "account_group", "account_home", "account_home_owner",
+    "account_home_file",
     "file_owner",
     "file_mode", "file_existence", "file_scan", "package_version", "document",
 }
@@ -385,6 +386,11 @@ def _result_message(check: dict, status, targets: list[dict], observed: dict, ex
         if status == ResultStatus.PASS:
             return "홈 디렉터리 소유자/권한이 부적절한 계정이 존재하지 않음"
         return "홈 디렉터리 소유자/권한이 부적절한 계정이 존재함"
+
+    if ctype == "account_home_file":
+        if status == ResultStatus.PASS:
+            return "환경변수 파일 소유자/권한이 부적절한 대상이 존재하지 않음"
+        return "환경변수 파일 소유자/권한이 부적절한 대상이 존재함"
 
     if ctype in ("account_group", "package_version", "document"):
         if status == ResultStatus.PASS:

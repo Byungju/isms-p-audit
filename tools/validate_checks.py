@@ -23,7 +23,7 @@ KISA_DIR = ROOT / "data" / "kisa" / "linux"
 ALLOWED_TYPES = {
     "file_mode", "file_owner", "file_existence", "config_value",
     "account_uid", "account_gid", "account_shell", "account_duplicate",
-    "account_group", "account_home", "account_home_owner",
+    "account_group", "account_home", "account_home_owner", "account_home_file",
     "service_status", "process_running", "package_version",
     "command_output", "document", "file_scan",
 }
@@ -252,6 +252,20 @@ def validate_automation(auto, ctx: str) -> None:
         err(f"{ctx}: 잘못된 assessment: {auto['assessment']!r}")
 
 
+def validate_account_home_file(targets, ctx: str) -> None:
+    for t in targets:
+        if t.get("kind") != "account":
+            err(f"{ctx}: account_home_file target kind는 account여야 함: {t.get('kind')!r}")
+            continue
+        files = t.get("files")
+        if not isinstance(files, list) or not files:
+            err(f"{ctx}: account_home_file target에 files(비어있지 않은 문자열 리스트)가 필요함")
+        else:
+            for f in files:
+                if not isinstance(f, str):
+                    err(f"{ctx}: files 항목은 문자열이어야 함: {f!r}")
+
+
 def main() -> int:
     checks = load_checks()
     kisa_ids = load_kisa_ids()
@@ -271,6 +285,8 @@ def main() -> int:
             err(f"{ctx}: 허용되지 않는 type: {c.get('type')!r}")
 
         validate_targets(c.get("targets"), ctx)
+        if c.get("type") == "account_home_file":
+            validate_account_home_file(c.get("targets") or [], ctx)
         validate_expect(c.get("expect"), ctx)
         validate_automation(c.get("automation"), ctx)
 

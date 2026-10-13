@@ -304,21 +304,30 @@ checks:
   - kind: file
     path: /
 - id: CK-lnx-U24-001
-  type: file_scan
-  description: 환경변수 파일 권한 확인
+  type: account_home_file
+  description: 홈 디렉터리 환경변수 파일 소유자/권한 확인
   platforms:
   - linux
   automation: *id001
   targets:
-  - kind: scan
+  - kind: account
+    source: /etc/passwd
     root: /home
-    recursive: true
-    criteria: world_writable
+    files:
+    - .profile
+    - .kshrc
+    - .cshrc
+    - .bashrc
+    - .bash_profile
+    - .login
+    - .exrc
+    - .netrc
   expect:
     op: empty
   evidence:
-  - kind: file
-    path: /home
+  - kind: account
+    path: /etc/passwd
+    field: home
 - id: CK-lnx-U25-001
   type: file_scan
   description: world writable 파일 존재 여부 확인(사람 판단)

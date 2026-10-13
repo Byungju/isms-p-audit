@@ -147,6 +147,7 @@ Check는 순수 기술 정의만 담는다. KISA 파생 정보는 저장하지 �
 | `account_duplicate` | UID/GID 중복 |
 | `account_home` | 계정 홈 디렉토리 존재 |
 | `account_home_owner` | 계정 홈 디렉토리 소유자(UID)·other-write 권한 (12-1절) |
+| `account_home_file` | 계정 홈 디렉터리 내 환경변수 파일 소유자·권한 (12-1절) |
 | `service_status` | 서비스/데몬 상태 |
 | `process_running` | 프로세스 실행 여부 |
 | `package_version` | 패키지 설치/버전 |
@@ -675,6 +676,48 @@ group_name, gid, members[]
 - 홈 디렉터리가 존재하지 않는 계정은 건너뛴다(존재 검사는 `account_home`이 담당).
 - `stat(home).st_uid != account_uid` 또는 `mode & 0o002`(other-write)이면 위반 목록에 포함한다.
 - 위반 시 evidence에 홈 경로(target)와 observed/expected owner 정보를 남긴다.
+
+### account_home_file (홈 디렉터리 내 환경변수 파일 소유자·권한)
+
+계정 정보에서 `username → UID → home` 관계를 얻고, 각 계정의 홈 디렉터리 안 `files` 목록의
+파일을 stat하여 **소유자(root 또는 해당 계정) 여부**와 **group-write/other-write**를 검사한다.
+`account_home_owner`가 "홈 디렉터리 자신"을 검사한다면, `account_home_file`은 "홈 안의
+지정 파일들"을 검사한다(U-24).
+
+```yaml
+- id: CK-lnx-U24-001
+  type: account_home_file
+  targets:
+    - kind: account
+      source: /etc/passwd
+      root: /home            # scope: 이 경로의 직접 자식 홈 디렉터리만 대상
+      files:                 # 검사 대상 파일명 목록
+        - .profile
+        - .bashrc
+        - .bash_profile
+        - .login
+  expect:
+    op: empty
+  automation:
+    observation: auto
+    assessment: auto
+```
+
+#### 대상(target: `account`)
+
+| 필드 | 의미 |
+| --- | --- |
+| `source` | 계정 정보 파일(/etc/passwd) |
+| `root` | 검사 대상 홈 디렉터리 scope(직접 자식만). 기본 `/home` |
+| `files` | 검사 대상 파일명 목록(비어있지 않은 문자열 리스트) |
+
+#### 판정 규칙
+
+- `home`이 `root`의 직접 자식이 아닌 계정은 대상에서 제외한다.
+- `home/<filename>`이 존재하지 않으면 대상에서 제외한다(에러 아님).
+- 소유자가 root(UID 0) 또는 해당 계정 UID가 아니면 위반.
+- `mode & (S_IWGRP | S_IWOTH)`(group-write 또는 other-write)가 있으면 위반.
+- 위반 시 evidence에 `home/<filename>` 경로(target)와 observed/expected owner·mode 정보를 남긴다.
 
 ### 판정(expect)의 공통 규칙
 
